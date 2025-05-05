@@ -143,4 +143,12 @@ with tab2:
     st.subheader("📈 Embedded Looker Studio Dashboard")
 
     LOOKER_URL = "https://lookerstudio.google.com/embed/reporting/c8b7472a-4864-40ae-b1d7-482c9cf581da/page/WIh1E"
-    show_looker_dashboard(LOOKER_URL, height=800)
+    
+    st.markdown(
+    f"""
+    <iframe src="{LOOKER_URL}" width="100%" height="800" frameborder="0" style="border:0" allowfullscreen 
+    sandbox="allow-scripts allow-same-origin allow-popups allow-forms">
+    </iframe>
+    """,
+    unsafe_allow_html=True,
+    )
