@@ -1,4 +1,0 @@
-streamlit
-pandas
-openai>=1.0.0
-python-dotenv
