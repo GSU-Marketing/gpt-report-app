@@ -22,7 +22,7 @@ def preprocess_timestamps(df):
     df["Ping Timestamp"] = pd.to_datetime(df["Ping Timestamp"], errors="coerce")
     return df
 
-DEFAULT_DATA_URL = "https://raw.githubusercontent.com/GSU-Marketing/gpt-report-app/main/Streamlit-test.parquet"
+DEFAULT_DATA_URL = "https://raw.githubusercontent.com/GSU-Marketing/gpt-report-app/main/streamlit-test.parquet"
 
 # --- Tab 1 ---
 with tab1:
