@@ -15,12 +15,15 @@ tab1, tab2 = st.tabs(["🧠 AI Report Generator", "📈 Looker Dashboard"])
 # --- TAB 1: AI Report ---
 with tab1:
     uploaded_file = st.file_uploader("Upload your Excel file", type=["xlsx"])
-    if uploaded_file:
-        df = pd.read_excel(uploaded_file)
-        st.success("Using uploaded file.")
-    else:
-        df = pd.read_excel("Streamlit_test.xlsx")
-        st.info("Using default test data.")
+GITHUB_XLSX_URL = "https://raw.githubusercontent.com/GSU-Marketing/gpt-report-app/main/Streamlit_test.xlsx"
+
+if uploaded_file:
+    df = pd.read_excel(uploaded_file)
+    st.success("✅ Using uploaded file.")
+else:
+    df = pd.read_excel(GITHUB_XLSX_URL)
+    st.info("📂 Using default GitHub-hosted data.")
+
 
     # --- FILTERS ---
     st.sidebar.subheader("🔎 Filter Data")
