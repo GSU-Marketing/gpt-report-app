@@ -23,21 +23,32 @@ def preprocess_timestamps(df):
     df["Ping Timestamp"] = pd.to_datetime(df["Ping Timestamp"], errors="coerce")
     return df
 
-DEFAULT_DATA_URL = "https://raw.githubusercontent.com/GSU-Marketing/gpt-report-app/main/Streamlit_test.xlsx"
+DEFAULT_DATA_URL = "https://raw.githubusercontent.com/GSU-Marketing/gpt-report-app/main/Streamlit_test.parquet"
+
+@st.cache_data
+def load_data_from_github(url):
+    return pd.read_parquet(url)
 
 with tab1:
     st.subheader("🧠 Upload Data or Use Default")
 
     # Optional: secure override with dev key
     dev_key = st.sidebar.text_input("🔐 Dev Key (Optional)", type="password")
-    uploaded_file = st.file_uploader("Upload your Excel file", type=["xlsx"])
+    uploaded_file = st.file_uploader("Upload your data file", type=["xlsx", "parquet"])
 
     if uploaded_file and dev_key == st.secrets.get("DEV_KEY", ""):
+    if uploaded_file.name.endswith(".xlsx"):
         df = pd.read_excel(uploaded_file)
-        st.success("✅ Using uploaded file.")
+    elif uploaded_file.name.endswith(".parquet"):
+        df = pd.read_parquet(uploaded_file)
     else:
-        df = load_data_from_github(DEFAULT_DATA_URL)
-        st.info("📂 Using default GitHub data.")
+        st.error("Unsupported file type.")
+        st.stop()
+    st.success("✅ Using uploaded file.")
+else:
+    df = load_data_from_github(DEFAULT_DATA_URL)
+    st.info("📂 Using default GitHub data.")
+
 
     df = preprocess_timestamps(df)
 
