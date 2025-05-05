@@ -47,16 +47,17 @@ with tab1:
 
     df = preprocess_timestamps(df)
 # Ensure Ping Timestamp exists
+# Parse 'Ping Timestamp' if it exists
 if "Ping Timestamp" in df.columns:
     df["Ping Timestamp"] = pd.to_datetime(df["Ping Timestamp"], errors="coerce")
-else:
-    st.warning("⚠️ No 'Ping Timestamp' column found.")
-    df["Ping Timestamp"] = pd.NaT
 
-# No filtering – just show everything
+# --- Optional: Skip all filtering for now ---
+
+# Show a preview
 st.subheader("📄 Data Preview")
 st.dataframe(df.head())
 st.markdown(f"**Total rows in dataset:** {len(df)}")
+
 
     programs = ["All"] + sorted(df['Applications Applied Program'].dropna().unique())
     statuses = ["All"] + sorted(df['Person Status'].dropna().unique())
