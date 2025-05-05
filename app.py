@@ -3,16 +3,16 @@ import pandas as pd
 import os
 from openai import OpenAI
 
-# Setup OpenAI client
+# --- Setup ---
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 st.set_page_config(layout="wide")
 st.title("📊 GPT-Powered Grad Report App")
 
-# Create tabs
+# --- Tabs ---
 tab1, tab2 = st.tabs(["🧠 AI Report Generator", "📈 Looker Dashboard"])
 
-# --- DATA CACHING ---
+# --- Cached functions ---
 @st.cache_data
 def load_data_from_github(url):
     return pd.read_parquet(url)
@@ -24,11 +24,11 @@ def preprocess_timestamps(df):
 
 DEFAULT_DATA_URL = "https://raw.githubusercontent.com/GSU-Marketing/gpt-report-app/main/Streamlit_test.parquet"
 
-# --- TAB 1: AI Report ---
+# --- Tab 1 ---
 with tab1:
     st.subheader("🧠 Upload Data or Use Default")
 
-    # Dev-only upload access
+    # Dev override
     dev_key = st.sidebar.text_input("🔐 Dev Key (Optional)", type="password")
     uploaded_file = st.file_uploader("Upload your data file", type=["xlsx", "parquet"])
 
@@ -47,7 +47,7 @@ with tab1:
 
     df = preprocess_timestamps(df)
 
-    # --- FILTERS ---
+    # --- Filters ---
     st.sidebar.subheader("🔎 Filter Data")
     programs = ["All"] + sorted(df['Applications Applied Program'].dropna().unique())
     statuses = ["All"] + sorted(df['Person Status'].dropna().unique())
@@ -65,7 +65,7 @@ with tab1:
     if selected_term != "All":
         filtered_df = filtered_df[filtered_df['Applications Applied Term'] == selected_term]
 
-    # --- DATE RANGE FILTERING ---
+    # --- Date range filtering ---
     st.subheader("🗓️ Filter by Date Range")
 
     min_date = df["Ping Timestamp"].min()
@@ -90,15 +90,14 @@ with tab1:
         filtered_df = filtered_df[(filtered_df["Ping Timestamp"] >= cy_start) & (filtered_df["Ping Timestamp"] <= cy_end)]
         st.markdown(f"📆 Showing data from **{cy_start.date()} to {cy_end.date()}**")
 
-    # --- Filtered Data Preview ---
+    # --- Filtered preview ---
     st.subheader("📄 Filtered Data Preview")
     st.dataframe(filtered_df.head())
     st.markdown(f"**Total rows after filtering:** {len(filtered_df)}")
 
-    # --- REPORT TEMPLATES ---
+    # --- GPT Prompts ---
     st.subheader("📋 Choose a Report Template:")
     col1, col2 = st.columns(2)
-
     prompt = ""
 
     with col1:
@@ -115,9 +114,9 @@ with tab1:
         if st.button("📆 Time-Based Application Trends"):
             prompt = "Analyze application trends over time. Identify seasonal spikes, fiscal year patterns, and program-specific changes."
 
-    # --- GPT Input & Analysis ---
+    # --- GPT Input & Run ---
     st.subheader("💬 Ask GPT About the Filtered Data")
-    user_input = st.text_area("Type your analysis request:", value=prompt, key="gpt_input_area")
+    user_input = st.text_area("Type your analysis request:", value=prompt, key="gpt_analysis_input")
 
     if st.button("🔎 Run GPT Analysis") and user_input.strip():
         st.info("⏳ Generating GPT-powered insight...")
@@ -136,7 +135,7 @@ with tab1:
         except Exception as e:
             st.error(f"❌ Error during GPT call: {e}")
 
-# --- TAB 2: LOOKER DASHBOARD ---
+# --- Tab 2: Looker Dashboard ---
 with tab2:
     st.subheader("📈 Embedded Looker Studio Dashboard")
     st.markdown(
