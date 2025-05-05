@@ -48,7 +48,9 @@ with tab1:
     df = preprocess_timestamps(df)
 # Filter out unrealistically old dates
     df = df[df["Ping Timestamp"] > pd.Timestamp("2022-01-01")]
-
+    if df.empty:
+    st.error("❌ No valid data found after filtering out bad dates.")
+    st.stop()
 
     # --- Filters ---
     st.sidebar.subheader("🔎 Filter Data")
