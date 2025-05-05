@@ -72,16 +72,16 @@ with tab1:
     max_date = df["Ping Timestamp"].max()
     calendar_years = list(range(min_date.year, max_date.year + 1))
 
-    # Dynamically calculate available fiscal years based on July–June windows
+    # Dynamically calculate fiscal years
     fiscal_years = []
     for year in range(min_date.year - 1, max_date.year + 2):
         fy_start = pd.Timestamp(f"{year}-07-01")
         fy_end = pd.Timestamp(f"{year + 1}-06-30")
         if fy_start <= max_date and fy_end >= min_date:
-            fiscal_years.append(f"{year + 1}")  # Fiscal year is named after its END year
+            fiscal_years.append(f"{year + 1}")  # e.g. July 2022–June 2023 = FY2023
 
-    view_type = st.selectbox("Select Time View:", ["All", "Fiscal Year", "Calendar Year"])
-    
+    view_type = st.selectbox("Select Time View:", ["All", "Fiscal Year", "Calendar Year"], key="time_view_select")
+
     if view_type == "Fiscal Year":
         selected_fy = st.selectbox("Select Fiscal Year:", fiscal_years, key="fiscal_year_select")
         fy_year = int(selected_fy)
@@ -141,6 +141,7 @@ with tab1:
             st.write(response.choices[0].message.content)
         except Exception as e:
             st.error(f"❌ Error during GPT call: {e}")
+
 
 # --- Tab 2: Looker Dashboard ---
 from looker_embed import show_looker_dashboard  # Add this import at the top of app.py
