@@ -46,19 +46,18 @@ with tab1:
         st.info("📂 Using default GitHub data.")
 
     df = preprocess_timestamps(df)
-# Drop rows with missing timestamps
-df = df.dropna(subset=["Ping Timestamp"])
+# Ensure Ping Timestamp exists
+if "Ping Timestamp" in df.columns:
+    df["Ping Timestamp"] = pd.to_datetime(df["Ping Timestamp"], errors="coerce")
+else:
+    st.warning("⚠️ No 'Ping Timestamp' column found.")
+    df["Ping Timestamp"] = pd.NaT
 
-# Filter out garbage dates (like 1969 or 1970) and future dates
-df = df[df["Ping Timestamp"] > pd.Timestamp("2000-01-01")]
+# No filtering – just show everything
+st.subheader("📄 Data Preview")
+st.dataframe(df.head())
+st.markdown(f"**Total rows in dataset:** {len(df)}")
 
-# Stop app if data is now empty
-if df.empty:
-    st.error("❌ No valid data found after filtering out bad or missing timestamps.")
-    st.stop()
-
-    # --- Filters ---
-    st.sidebar.subheader("🔎 Filter Data")
     programs = ["All"] + sorted(df['Applications Applied Program'].dropna().unique())
     statuses = ["All"] + sorted(df['Person Status'].dropna().unique())
     terms = ["All"] + sorted(df['Applications Applied Term'].dropna().unique())
