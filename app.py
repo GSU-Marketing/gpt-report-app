@@ -46,10 +46,15 @@ with tab1:
         st.info("📂 Using default GitHub data.")
 
     df = preprocess_timestamps(df)
-# Filter out unrealistically old dates
-    df = df[df["Ping Timestamp"] > pd.Timestamp("2022-01-01")]
-    if df.empty:
-    st.error("❌ No valid data found after filtering out bad dates.")
+# Drop rows with missing timestamps
+df = df.dropna(subset=["Ping Timestamp"])
+
+# Filter out garbage dates (like 1969 or 1970) and future dates
+df = df[df["Ping Timestamp"] > pd.Timestamp("2000-01-01")]
+
+# Stop app if data is now empty
+if df.empty:
+    st.error("❌ No valid data found after filtering out bad or missing timestamps.")
     st.stop()
 
     # --- Filters ---
