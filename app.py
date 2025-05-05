@@ -23,15 +23,23 @@ with tab1:
         st.info("Using default test data.")
 
     # --- FILTERS ---
-    st.subheader("📌 Filter Your Data (Optional)")
-    col1, col2, col3 = st.columns(3)
+   st.subheader("📋 Or choose a report template:")
 
-    with col1:
-        selected_program = st.selectbox("Filter by Program:", ["All"] + sorted(df['Inquiry Program'].dropna().unique().tolist()))
-    with col2:
-        selected_status = st.selectbox("Filter by Status:", ["All"] + sorted(df['Status'].dropna().unique().tolist()))
-    with col3:
-        selected_term = st.selectbox("Filter by Term:", ["All"] + sorted(df['Term'].dropna().unique().tolist()))
+col1, col2 = st.columns(2)
+with col1:
+    if st.button("🔍 Program Interest Trends"):
+        prompt = "Analyze the trends in program interest over time. Which programs are growing or shrinking in popularity?"
+
+    if st.button("📊 Conversion Funnel Analysis"):
+        prompt = "Analyze the funnel from inquiry to applicant to enrolled. Where are most students dropping off?"
+
+with col2:
+    if st.button("🌍 Geographical Distribution of Applicants"):
+        prompt = "Provide a breakdown of the applicants' geographical locations, and identify key regions of growth or decline."
+
+    if st.button("📆 Time-Based Application Trends"):
+        prompt = "Analyze application trends over time. Identify seasonal spikes, fiscal year patterns, and program-specific changes."
+
 
     # Apply filters
     filtered_df = df.copy()
@@ -47,6 +55,39 @@ with tab1:
     prompt = st.text_area("Type your analysis request:")
 
     st.subheader("💬 Ask GPT About the Filtered Data")
+
+st.subheader("🗓️ Filter by Date Range")
+
+# Ensure Ping Timestamp is datetime
+df["Ping Timestamp"] = pd.to_datetime(df["Ping Timestamp"], errors="coerce")
+filtered_df["Ping Timestamp"] = pd.to_datetime(filtered_df["Ping Timestamp"], errors="coerce")
+
+# Generate fiscal and calendar years available
+min_date = df["Ping Timestamp"].min()
+max_date = df["Ping Timestamp"].max()
+
+# Get list of unique fiscal years
+fiscal_years = list(range(min_date.year, max_date.year + 2))  # +2 to catch edge case June
+calendar_years = list(range(min_date.year, max_date.year + 1))
+
+# Select view type and year
+view_type = st.selectbox("Select Time View:", ["All", "Fiscal Year", "Calendar Year"])
+selected_year = None
+
+if view_type == "Fiscal Year":
+    selected_year = st.selectbox("Select Fiscal Year:", fiscal_years)
+    fy_start = pd.Timestamp(f"{selected_year - 1}-07-01")
+    fy_end = pd.Timestamp(f"{selected_year}-06-30")
+    filtered_df = filtered_df[(filtered_df["Ping Timestamp"] >= fy_start) & (filtered_df["Ping Timestamp"] <= fy_end)]
+    st.markdown(f"📆 Showing data from **{fy_start.date()} to {fy_end.date()}**")
+
+elif view_type == "Calendar Year":
+    selected_year = st.selectbox("Select Calendar Year:", calendar_years)
+    cy_start = pd.Timestamp(f"{selected_year}-01-01")
+    cy_end = pd.Timestamp(f"{selected_year}-12-31")
+    filtered_df = filtered_df[(filtered_df["Ping Timestamp"] >= cy_start) & (filtered_df["Ping Timestamp"] <= cy_end)]
+    st.markdown(f"📆 Showing data from **{cy_start.date()} to {cy_end.date()}**")
+
 
 # --- Predefined Templates ---
 st.markdown("**📌 Quick Templates:**")
