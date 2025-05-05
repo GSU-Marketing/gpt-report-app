@@ -121,7 +121,8 @@ else:
             prompt = "Analyze application trends over time. Identify seasonal spikes, fiscal year patterns, and program-specific changes."
 
     st.subheader("💬 Ask GPT About the Filtered Data")
-    user_input = st.text_area("Type your analysis request:", value=prompt)
+    user_input = st.text_area("Type your analysis request:", value=prompt, key="gpt_input_area")
+
 
     if st.button("🔎 Run GPT Analysis") and user_input.strip():
         st.info("⏳ Generating GPT-powered insight...")
