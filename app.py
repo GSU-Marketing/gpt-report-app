@@ -46,14 +46,26 @@ with tab1:
     st.subheader("💬 Ask GPT About the Filtered Data")
     prompt = st.text_area("Type your analysis request:")
 
-    if st.button("Generate AI Report") and prompt:
-        csv_data = filtered_df.to_csv(index=False)
-        full_prompt = f"You are a university data analyst. Here is a CSV dataset:\n\n{csv_data}\n\n{prompt}"
-        response = client.chat.completions.create(
-            model="gpt-4-turbo",
-            messages=[{"role": "user", "content": full_prompt}]
-        )
-        st.write(response.choices[0].message.content)
+    st.subheader("💬 Ask GPT About the Filtered Data")
+
+# --- Predefined Templates ---
+st.markdown("**📌 Quick Templates:**")
+templates = {
+    "Executive Summary": "Give me an executive summary of this dataset.",
+    "Conversion Funnel": "Summarize the conversion rates from inquiry to application to enrollment.",
+    "Geographic Insights": "Analyze which states or countries generate the most enrollments.",
+    "Program Performance": "Which programs are generating the most inquiries and enrollments?",
+    "Enrollment Trends": "Describe any trends in enrollment over time.",
+}
+
+selected_template = st.selectbox("Choose a predefined report template:", ["None"] + list(templates.keys()))
+
+# Set prompt from template or let user type
+if selected_template != "None":
+    prompt = templates[selected_template]
+else:
+    prompt = st.text_area("Or type your own prompt here:")
+
 
 # --- TAB 2: LOOKER ---
 with tab2:
