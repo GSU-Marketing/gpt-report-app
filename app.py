@@ -3,7 +3,7 @@ import pandas as pd
 import os
 from openai import OpenAI
 
-# Setup
+# Setup OpenAI client
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 st.set_page_config(layout="wide")
@@ -12,9 +12,10 @@ st.title("📊 GPT-Powered Grad Report App")
 # Create tabs
 tab1, tab2 = st.tabs(["🧠 AI Report Generator", "📈 Looker Dashboard"])
 
-# --- TAB 1: AI Report ---
-# --- TAB 1: AI Report ---
-
+# --- DATA CACHING ---
+@st.cache_data
+def load_data_from_github(url):
+    return pd.read_parquet(url)
 
 @st.cache_data
 def preprocess_timestamps(df):
@@ -23,31 +24,26 @@ def preprocess_timestamps(df):
 
 DEFAULT_DATA_URL = "https://raw.githubusercontent.com/GSU-Marketing/gpt-report-app/main/Streamlit_test.parquet"
 
-@st.cache_data
-def load_data_from_github(url):
-    return pd.read_parquet(url)
-
+# --- TAB 1: AI Report ---
 with tab1:
     st.subheader("🧠 Upload Data or Use Default")
 
-    # Optional: secure override with dev key
+    # Dev-only upload access
     dev_key = st.sidebar.text_input("🔐 Dev Key (Optional)", type="password")
     uploaded_file = st.file_uploader("Upload your data file", type=["xlsx", "parquet"])
 
     if uploaded_file and dev_key == st.secrets.get("DEV_KEY", ""):
-    if uploaded_file.name.endswith(".xlsx"):
-        df = pd.read_excel(uploaded_file)
-    elif uploaded_file.name.endswith(".parquet"):
-        df = pd.read_parquet(uploaded_file)
+        if uploaded_file.name.endswith(".xlsx"):
+            df = pd.read_excel(uploaded_file)
+        elif uploaded_file.name.endswith(".parquet"):
+            df = pd.read_parquet(uploaded_file)
+        else:
+            st.error("Unsupported file type.")
+            st.stop()
+        st.success("✅ Using uploaded file.")
     else:
-        st.error("Unsupported file type.")
-        st.stop()
-    st.success("✅ Using uploaded file.")
-else:
-    df = load_data_from_github(DEFAULT_DATA_URL)
-    st.info("📂 Using default GitHub data.")
-
-
+        df = load_data_from_github(DEFAULT_DATA_URL)
+        st.info("📂 Using default GitHub data.")
 
     df = preprocess_timestamps(df)
 
@@ -57,9 +53,9 @@ else:
     statuses = ["All"] + sorted(df['Person Status'].dropna().unique())
     terms = ["All"] + sorted(df['Applications Applied Term'].dropna().unique())
 
-    selected_program = st.sidebar.selectbox("Program:", programs)
-    selected_status = st.sidebar.selectbox("Status:", statuses)
-    selected_term = st.sidebar.selectbox("Term:", terms)
+    selected_program = st.sidebar.selectbox("Program:", programs, key="program_filter")
+    selected_status = st.sidebar.selectbox("Status:", statuses, key="status_filter")
+    selected_term = st.sidebar.selectbox("Term:", terms, key="term_filter")
 
     filtered_df = df
     if selected_program != "All":
@@ -119,8 +115,9 @@ else:
         if st.button("📆 Time-Based Application Trends"):
             prompt = "Analyze application trends over time. Identify seasonal spikes, fiscal year patterns, and program-specific changes."
 
-    
-
+    # --- GPT Input & Analysis ---
+    st.subheader("💬 Ask GPT About the Filtered Data")
+    user_input = st.text_area("Type your analysis request:", value=prompt, key="gpt_input_area")
 
     if st.button("🔎 Run GPT Analysis") and user_input.strip():
         st.info("⏳ Generating GPT-powered insight...")
@@ -138,10 +135,6 @@ else:
             st.write(response.choices[0].message.content)
         except Exception as e:
             st.error(f"❌ Error during GPT call: {e}")
-
-    # --- GPT Input ---
-    st.subheader("💬 Ask GPT About the Filtered Data")
-    user_input = st.text_area("Type your analysis request:", value=prompt)
 
 # --- TAB 2: LOOKER DASHBOARD ---
 with tab2:
