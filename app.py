@@ -14,9 +14,7 @@ tab1, tab2 = st.tabs(["🧠 AI Report Generator", "📈 Looker Dashboard"])
 
 # --- TAB 1: AI Report ---
 # --- TAB 1: AI Report ---
-@st.cache_data
-def load_data_from_github(url):
-    return pd.read_excel(url)
+
 
 @st.cache_data
 def preprocess_timestamps(df):
@@ -121,8 +119,7 @@ else:
         if st.button("📆 Time-Based Application Trends"):
             prompt = "Analyze application trends over time. Identify seasonal spikes, fiscal year patterns, and program-specific changes."
 
-    st.subheader("💬 Ask GPT About the Filtered Data")
-    user_input = st.text_area("Type your analysis request:", value=prompt, key="gpt_input_area")
+    
 
 
     if st.button("🔎 Run GPT Analysis") and user_input.strip():
