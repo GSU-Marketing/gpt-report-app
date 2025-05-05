@@ -70,31 +70,28 @@ with tab1:
 
     min_date = df["Ping Timestamp"].min()
     max_date = df["Ping Timestamp"].max()
-    fiscal_years = list(range(min_date.year, max_date.year + 2))
     calendar_years = list(range(min_date.year, max_date.year + 1))
 
+    # Dynamically calculate available fiscal years based on July–June windows
+    fiscal_years = []
+    for year in range(min_date.year - 1, max_date.year + 2):
+        fy_start = pd.Timestamp(f"{year}-07-01")
+        fy_end = pd.Timestamp(f"{year + 1}-06-30")
+        if fy_start <= max_date and fy_end >= min_date:
+            fiscal_years.append(f"{year + 1}")  # Fiscal year is named after its END year
+
     view_type = st.selectbox("Select Time View:", ["All", "Fiscal Year", "Calendar Year"])
-    selected_year = None
-
-    # Determine possible fiscal years based on Ping Timestamps
-fiscal_years = []
-for year in range(min_date.year - 1, max_date.year + 2):
-    fy_start = pd.Timestamp(f"{year}-07-01")
-    fy_end = pd.Timestamp(f"{year + 1}-06-30")
-    if fy_start <= max_date and fy_end >= min_date:
-        fiscal_years.append(f"{year + 1}")  # Fiscal year is named after the *end* year
-
-if view_type == "Fiscal Year":
-    selected_fy = st.selectbox("Select Fiscal Year:", fiscal_years, key="fiscal_year_select")
-    fy_year = int(selected_fy)
-    fy_start = pd.Timestamp(f"{fy_year - 1}-07-01")
-    fy_end = pd.Timestamp(f"{fy_year}-06-30")
-    filtered_df = filtered_df[(filtered_df["Ping Timestamp"] >= fy_start) & (filtered_df["Ping Timestamp"] <= fy_end)]
-    st.markdown(f"📆 Showing data from **{fy_start.date()} to {fy_end.date()}**")
-
+    
+    if view_type == "Fiscal Year":
+        selected_fy = st.selectbox("Select Fiscal Year:", fiscal_years, key="fiscal_year_select")
+        fy_year = int(selected_fy)
+        fy_start = pd.Timestamp(f"{fy_year - 1}-07-01")
+        fy_end = pd.Timestamp(f"{fy_year}-06-30")
+        filtered_df = filtered_df[(filtered_df["Ping Timestamp"] >= fy_start) & (filtered_df["Ping Timestamp"] <= fy_end)]
+        st.markdown(f"📆 Showing data from **{fy_start.date()} to {fy_end.date()}**")
 
     elif view_type == "Calendar Year":
-        selected_year = st.selectbox("Select Calendar Year:", calendar_years)
+        selected_year = st.selectbox("Select Calendar Year:", calendar_years, key="calendar_year_select")
         cy_start = pd.Timestamp(f"{selected_year}-01-01")
         cy_end = pd.Timestamp(f"{selected_year}-12-31")
         filtered_df = filtered_df[(filtered_df["Ping Timestamp"] >= cy_start) & (filtered_df["Ping Timestamp"] <= cy_end)]
