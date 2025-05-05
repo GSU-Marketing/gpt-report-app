@@ -46,6 +46,9 @@ with tab1:
         st.info("📂 Using default GitHub data.")
 
     df = preprocess_timestamps(df)
+# Filter out unrealistically old dates
+    df = df[df["Ping Timestamp"] > pd.Timestamp("2022-01-01")]
+
 
     # --- Filters ---
     st.sidebar.subheader("🔎 Filter Data")
