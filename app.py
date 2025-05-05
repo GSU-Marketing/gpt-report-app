@@ -43,9 +43,9 @@ with tab1:
 
     # --- FILTERS ---
     st.sidebar.subheader("🔎 Filter Data")
-    programs = ["All"] + sorted(df['Inquiry Program'].dropna().unique())
-    statuses = ["All"] + sorted(df['Status'].dropna().unique())
-    terms = ["All"] + sorted(df['Term'].dropna().unique())
+    programs = ["All"] + sorted(df['Applications Applied Program'].dropna().unique())
+    statuses = ["All"] + sorted(df['Person Status'].dropna().unique())
+    terms = ["All"] + sorted(df['Applications Applied Term'].dropna().unique())
 
     selected_program = st.sidebar.selectbox("Program:", programs)
     selected_status = st.sidebar.selectbox("Status:", statuses)
@@ -53,11 +53,11 @@ with tab1:
 
     filtered_df = df
     if selected_program != "All":
-        filtered_df = filtered_df[filtered_df['Inquiry Program'] == selected_program]
+        filtered_df = filtered_df[filtered_df['Applications Applied Program'] == selected_program]
     if selected_status != "All":
-        filtered_df = filtered_df[filtered_df['Status'] == selected_status]
+        filtered_df = filtered_df[filtered_df['Person Status'] == selected_status]
     if selected_term != "All":
-        filtered_df = filtered_df[filtered_df['Term'] == selected_term]
+        filtered_df = filtered_df[filtered_df['Applications Applied Term'] == selected_term]
 
     # --- DATE RANGE FILTERING ---
     st.subheader("🗓️ Filter by Date Range")
