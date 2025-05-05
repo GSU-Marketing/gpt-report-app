@@ -97,9 +97,7 @@ with tab2:
     st.subheader("📈 Embedded Looker Studio Dashboard")
     st.markdown(
         """
-        <iframe width="100%" height="600" 
-        src="https://lookerstudio.google.com/embed/reporting/c8b7472a-4864-40ae-b1d7-482c9cf581da/page/p_5vd9ebic9c"
-        frameborder="0" style="border:0" allowfullscreen></iframe>
+        <iframe width="600" height="450" src="https://lookerstudio.google.com/embed/reporting/c8b7472a-4864-40ae-b1d7-482c9cf581da/page/WIh1E" frameborder="0" style="border:0" allowfullscreen sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"></iframe>
         """,
         unsafe_allow_html=True,
     )
