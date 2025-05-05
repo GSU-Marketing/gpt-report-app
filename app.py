@@ -58,59 +58,29 @@ st.subheader("📄 Data Preview")
 st.dataframe(df.head())
 st.markdown(f"**Total rows in dataset:** {len(df)}")
 
+# --- Optional: Sidebar Filters (re-enabled without date filters) ---
+st.sidebar.subheader("🔎 Filter Data")
+programs = ["All"] + sorted(df['Applications Applied Program'].dropna().unique())
+statuses = ["All"] + sorted(df['Person Status'].dropna().unique())
+terms = ["All"] + sorted(df['Applications Applied Term'].dropna().unique())
 
-    programs = ["All"] + sorted(df['Applications Applied Program'].dropna().unique())
-    statuses = ["All"] + sorted(df['Person Status'].dropna().unique())
-    terms = ["All"] + sorted(df['Applications Applied Term'].dropna().unique())
+selected_program = st.sidebar.selectbox("Program:", programs, key="program_filter")
+selected_status = st.sidebar.selectbox("Status:", statuses, key="status_filter")
+selected_term = st.sidebar.selectbox("Term:", terms, key="term_filter")
 
-    selected_program = st.sidebar.selectbox("Program:", programs, key="program_filter")
-    selected_status = st.sidebar.selectbox("Status:", statuses, key="status_filter")
-    selected_term = st.sidebar.selectbox("Term:", terms, key="term_filter")
+filtered_df = df
+if selected_program != "All":
+    filtered_df = filtered_df[filtered_df['Applications Applied Program'] == selected_program]
+if selected_status != "All":
+    filtered_df = filtered_df[filtered_df['Person Status'] == selected_status]
+if selected_term != "All":
+    filtered_df = filtered_df[filtered_df['Applications Applied Term'] == selected_term]
 
-    filtered_df = df
-    if selected_program != "All":
-        filtered_df = filtered_df[filtered_df['Applications Applied Program'] == selected_program]
-    if selected_status != "All":
-        filtered_df = filtered_df[filtered_df['Person Status'] == selected_status]
-    if selected_term != "All":
-        filtered_df = filtered_df[filtered_df['Applications Applied Term'] == selected_term]
+# Show filtered data
+st.subheader("📄 Filtered Data Preview")
+st.dataframe(filtered_df.head())
+st.markdown(f"**Total rows after filtering:** {len(filtered_df)}")
 
-    # --- Date range filtering ---
-    st.subheader("🗓️ Filter by Date Range")
-
-    min_date = df["Ping Timestamp"].min()
-    max_date = df["Ping Timestamp"].max()
-    calendar_years = list(range(min_date.year, max_date.year + 1))
-
-    # Dynamically calculate fiscal years
-    fiscal_years = []
-    for year in range(min_date.year - 1, max_date.year + 2):
-        fy_start = pd.Timestamp(f"{year}-07-01")
-        fy_end = pd.Timestamp(f"{year + 1}-06-30")
-        if fy_start <= max_date and fy_end >= min_date:
-            fiscal_years.append(f"{year + 1}")  # e.g. July 2022–June 2023 = FY2023
-
-    view_type = st.selectbox("Select Time View:", ["All", "Fiscal Year", "Calendar Year"], key="time_view_select")
-
-    if view_type == "Fiscal Year":
-        selected_fy = st.selectbox("Select Fiscal Year:", fiscal_years, key="fiscal_year_select")
-        fy_year = int(selected_fy)
-        fy_start = pd.Timestamp(f"{fy_year - 1}-07-01")
-        fy_end = pd.Timestamp(f"{fy_year}-06-30")
-        filtered_df = filtered_df[(filtered_df["Ping Timestamp"] >= fy_start) & (filtered_df["Ping Timestamp"] <= fy_end)]
-        st.markdown(f"📆 Showing data from **{fy_start.date()} to {fy_end.date()}**")
-
-    elif view_type == "Calendar Year":
-        selected_year = st.selectbox("Select Calendar Year:", calendar_years, key="calendar_year_select")
-        cy_start = pd.Timestamp(f"{selected_year}-01-01")
-        cy_end = pd.Timestamp(f"{selected_year}-12-31")
-        filtered_df = filtered_df[(filtered_df["Ping Timestamp"] >= cy_start) & (filtered_df["Ping Timestamp"] <= cy_end)]
-        st.markdown(f"📆 Showing data from **{cy_start.date()} to {cy_end.date()}**")
-
-    # --- Filtered preview ---
-    st.subheader("📄 Filtered Data Preview")
-    st.dataframe(filtered_df.head())
-    st.markdown(f"**Total rows after filtering:** {len(filtered_df)}")
 
     # --- GPT Prompts ---
     st.subheader("📋 Choose a Report Template:")
