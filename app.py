@@ -52,13 +52,11 @@ if "Ping Timestamp" in df.columns:
     df["Ping Timestamp"] = pd.to_datetime(df["Ping Timestamp"], errors="coerce")
 
 # --- Optional: Skip all filtering for now ---
+# Parse 'Ping Timestamp' safely
+if "Ping Timestamp" in df.columns:
+    df["Ping Timestamp"] = pd.to_datetime(df["Ping Timestamp"], errors="coerce")
 
-# Show a preview
-st.subheader("📄 Data Preview")
-st.dataframe(df.head())
-st.markdown(f"**Total rows in dataset:** {len(df)}")
-
-# --- Optional: Sidebar Filters (re-enabled without date filters) ---
+# --- Sidebar Filters ---
 st.sidebar.subheader("🔎 Filter Data")
 programs = ["All"] + sorted(df['Applications Applied Program'].dropna().unique())
 statuses = ["All"] + sorted(df['Person Status'].dropna().unique())
@@ -76,51 +74,51 @@ if selected_status != "All":
 if selected_term != "All":
     filtered_df = filtered_df[filtered_df['Applications Applied Term'] == selected_term]
 
-# Show filtered data
+# --- Show filtered preview ---
 st.subheader("📄 Filtered Data Preview")
 st.dataframe(filtered_df.head())
 st.markdown(f"**Total rows after filtering:** {len(filtered_df)}")
 
+# --- GPT Prompt Buttons ---
+st.subheader("📋 Choose a Report Template:")
+col1, col2 = st.columns(2)
+prompt = ""
 
-    # --- GPT Prompts ---
-    st.subheader("📋 Choose a Report Template:")
-    col1, col2 = st.columns(2)
-    prompt = ""
+with col1:
+    if st.button("🔍 Program Interest Trends"):
+        prompt = "Analyze the trends in program interest over time. Which programs are growing or shrinking in popularity?"
 
-    with col1:
-        if st.button("🔍 Program Interest Trends"):
-            prompt = "Analyze the trends in program interest over time. Which programs are growing or shrinking in popularity?"
+    if st.button("📊 Conversion Funnel Analysis"):
+        prompt = "Analyze the funnel from inquiry to applicant to enrolled. Where are most students dropping off?"
 
-        if st.button("📊 Conversion Funnel Analysis"):
-            prompt = "Analyze the funnel from inquiry to applicant to enrolled. Where are most students dropping off?"
+with col2:
+    if st.button("🌍 Geographical Distribution of Applicants"):
+        prompt = "Provide a breakdown of the applicants' geographical locations, and identify key regions of growth or decline."
 
-    with col2:
-        if st.button("🌍 Geographical Distribution of Applicants"):
-            prompt = "Provide a breakdown of the applicants' geographical locations, and identify key regions of growth or decline."
+    if st.button("📆 Time-Based Application Trends"):
+        prompt = "Analyze application trends over time. Identify seasonal spikes, fiscal year patterns, and program-specific changes."
 
-        if st.button("📆 Time-Based Application Trends"):
-            prompt = "Analyze application trends over time. Identify seasonal spikes, fiscal year patterns, and program-specific changes."
+# --- GPT Free Text Input ---
+st.subheader("💬 Ask GPT About the Filtered Data")
+user_input = st.text_area("Type your analysis request:", value=prompt, key="gpt_analysis_input")
 
-    # --- GPT Input & Run ---
-    st.subheader("💬 Ask GPT About the Filtered Data")
-    user_input = st.text_area("Type your analysis request:", value=prompt, key="gpt_analysis_input")
+if st.button("🔎 Run GPT Analysis") and user_input.strip():
+    st.info("⏳ Generating GPT-powered insight...")
+    try:
+        sample_csv = filtered_df.sample(min(50, len(filtered_df))).to_csv(index=False)
 
-    if st.button("🔎 Run GPT Analysis") and user_input.strip():
-        st.info("⏳ Generating GPT-powered insight...")
-        try:
-            sample_csv = filtered_df.sample(min(50, len(filtered_df))).to_csv(index=False)
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are a data analyst. Provide clear, concise analysis."},
+                {"role": "user", "content": f"Here is a sample of the dataset:\n{sample_csv}\n\n{user_input}"}
+            ]
+        )
+        st.success("✅ GPT Response:")
+        st.write(response.choices[0].message.content)
+    except Exception as e:
+        st.error(f"❌ Error during GPT call: {e}")
 
-            response = client.chat.completions.create(
-                model="gpt-4",
-                messages=[
-                    {"role": "system", "content": "You are a data analyst. Provide clear, concise analysis."},
-                    {"role": "user", "content": f"Here is a sample of the dataset:\n{sample_csv}\n\n{user_input}"}
-                ]
-            )
-            st.success("✅ GPT Response:")
-            st.write(response.choices[0].message.content)
-        except Exception as e:
-            st.error(f"❌ Error during GPT call: {e}")
 
 
 # --- Tab 2: Looker Dashboard ---
