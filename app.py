@@ -13,44 +13,57 @@ st.title("📊 GPT-Powered Grad Report App")
 tab1, tab2 = st.tabs(["🧠 AI Report Generator", "📈 Looker Dashboard"])
 
 # --- TAB 1: AI Report ---
+# --- TAB 1: AI Report ---
+@st.cache_data
+def load_data_from_github(url):
+    return pd.read_excel(url)
+
+@st.cache_data
+def preprocess_timestamps(df):
+    df["Ping Timestamp"] = pd.to_datetime(df["Ping Timestamp"], errors="coerce")
+    return df
+
+DEFAULT_DATA_URL = "https://raw.githubusercontent.com/GSU-Marketing/gpt-report-app/main/Streamlit_test.xlsx"
+
 with tab1:
+    st.subheader("🧠 Upload Data or Use Default")
+
+    # Optional: secure override with dev key
+    dev_key = st.sidebar.text_input("🔐 Dev Key (Optional)", type="password")
     uploaded_file = st.file_uploader("Upload your Excel file", type=["xlsx"])
-GITHUB_XLSX_URL = "https://raw.githubusercontent.com/GSU-Marketing/gpt-report-app/main/Streamlit_test.xlsx"
 
-if uploaded_file:
-    df = pd.read_excel(uploaded_file)
-    st.success("✅ Using uploaded file.")
-else:
-    df = pd.read_excel(GITHUB_XLSX_URL)
-    st.info("📂 Using default GitHub-hosted data.")
+    if uploaded_file and dev_key == st.secrets.get("DEV_KEY", ""):
+        df = pd.read_excel(uploaded_file)
+        st.success("✅ Using uploaded file.")
+    else:
+        df = load_data_from_github(DEFAULT_DATA_URL)
+        st.info("📂 Using default GitHub data.")
 
+    df = preprocess_timestamps(df)
 
     # --- FILTERS ---
     st.sidebar.subheader("🔎 Filter Data")
-    programs = ["All"] + sorted(df['Applications Applied Program'].dropna().unique())
-    statuses = ["All"] + sorted(df['Person Status'].dropna().unique())
-    terms = ["All"] + sorted(df['Applications Applied Term'].dropna().unique())
+    programs = ["All"] + sorted(df['Inquiry Program'].dropna().unique())
+    statuses = ["All"] + sorted(df['Status'].dropna().unique())
+    terms = ["All"] + sorted(df['Term'].dropna().unique())
 
     selected_program = st.sidebar.selectbox("Program:", programs)
     selected_status = st.sidebar.selectbox("Status:", statuses)
     selected_term = st.sidebar.selectbox("Term:", terms)
 
-    filtered_df = df.copy()
+    filtered_df = df
     if selected_program != "All":
-        filtered_df = filtered_df[filtered_df['Applications Applied Program'] == selected_program]
+        filtered_df = filtered_df[filtered_df['Inquiry Program'] == selected_program]
     if selected_status != "All":
-        filtered_df = filtered_df[filtered_df['Person Status'] == selected_status]
+        filtered_df = filtered_df[filtered_df['Status'] == selected_status]
     if selected_term != "All":
-        filtered_df = filtered_df[filtered_df['Applications Applied Term'] == selected_term]
+        filtered_df = filtered_df[filtered_df['Term'] == selected_term]
 
     # --- DATE RANGE FILTERING ---
     st.subheader("🗓️ Filter by Date Range")
-    df["Ping Timestamp"] = pd.to_datetime(df["Ping Timestamp"], errors="coerce")
-    filtered_df["Ping Timestamp"] = pd.to_datetime(filtered_df["Ping Timestamp"], errors="coerce")
 
     min_date = df["Ping Timestamp"].min()
     max_date = df["Ping Timestamp"].max()
-
     fiscal_years = list(range(min_date.year, max_date.year + 2))
     calendar_years = list(range(min_date.year, max_date.year + 1))
 
@@ -71,8 +84,13 @@ else:
         filtered_df = filtered_df[(filtered_df["Ping Timestamp"] >= cy_start) & (filtered_df["Ping Timestamp"] <= cy_end)]
         st.markdown(f"📆 Showing data from **{cy_start.date()} to {cy_end.date()}**")
 
+    # --- Filtered Data Preview ---
+    st.subheader("📄 Filtered Data Preview")
+    st.dataframe(filtered_df.head())
+    st.markdown(f"**Total rows after filtering:** {len(filtered_df)}")
+
     # --- REPORT TEMPLATES ---
-    st.subheader("📋 Or choose a report template:")
+    st.subheader("📋 Choose a Report Template:")
     col1, col2 = st.columns(2)
 
     prompt = ""
@@ -90,6 +108,26 @@ else:
 
         if st.button("📆 Time-Based Application Trends"):
             prompt = "Analyze application trends over time. Identify seasonal spikes, fiscal year patterns, and program-specific changes."
+
+    st.subheader("💬 Ask GPT About the Filtered Data")
+    user_input = st.text_area("Type your analysis request:", value=prompt)
+
+    if st.button("🔎 Run GPT Analysis") and user_input.strip():
+        st.info("⏳ Generating GPT-powered insight...")
+        try:
+            sample_csv = filtered_df.sample(min(50, len(filtered_df))).to_csv(index=False)
+
+            response = client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You are a data analyst. Provide clear, concise analysis."},
+                    {"role": "user", "content": f"Here is a sample of the dataset:\n{sample_csv}\n\n{user_input}"}
+                ]
+            )
+            st.success("✅ GPT Response:")
+            st.write(response.choices[0].message.content)
+        except Exception as e:
+            st.error(f"❌ Error during GPT call: {e}")
 
     # --- GPT Input ---
     st.subheader("💬 Ask GPT About the Filtered Data")
