@@ -97,11 +97,12 @@ else:
 # --- PAGE 1: Funnel Overview ---
 if view == "Page 1: Funnel Overview":
     st.subheader("🎯 Lead Funnel Overview")
-        inquiries = len(filtered_df[filtered_df['Person Status'] == 'Inquiry'])
+    inquiries = len(filtered_df[filtered_df['Person Status'] == 'Inquiry'])
     applicants = len(filtered_df[filtered_df['Person Status'] == 'Applicant'])
     enrolled = len(filtered_df[filtered_df['Person Status'] == 'Enrolled'])
-        stacked = st.sidebar.checkbox("📱 Mobile View", value=False)
-        if stacked:
+    stacked = st.sidebar.checkbox("📱 Mobile View", value=False)
+
+    if stacked:
         st.metric("🧠 Inquiries", inquiries)
         st.metric("📄 Applicants", applicants)
         st.metric("🎓 Enrolled", enrolled)
@@ -110,3 +111,4 @@ if view == "Page 1: Funnel Overview":
         col1.metric("🧠 Inquiries", inquiries)
         col2.metric("📄 Applicants", applicants)
         col3.metric("🎓 Enrolled", enrolled)
+
