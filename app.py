@@ -72,10 +72,14 @@ selected_program = st.sidebar.selectbox("Program:", programs)
 selected_status = st.sidebar.selectbox("Status:", statuses)
 selected_term = st.sidebar.selectbox("Term:", terms)
 
+# --- Global Time View Toggle ---
+st.sidebar.subheader("📅 Time Dimension")
+time_view = st.sidebar.radio("Choose a time range mode:", ["Calendar Year", "Fiscal Year"], horizontal=True)
+
 filtered_df = get_filtered_data(df, selected_program, selected_status, selected_term)
 
-# --- PAGE 2: Geography & Program ---
-elif view == "Page 2: Geography & Program":
+# Dummy route for page flow (avoid syntax error)
+if view == "Page 2: Geography & Program":
     st.subheader("🌍 Geography & Program Breakdown")
 
     top_programs = filtered_df['Applications Applied Program'].value_counts().head(10).reset_index()
