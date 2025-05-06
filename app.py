@@ -172,7 +172,7 @@ elif view == "Page 3: Engagement & Traffic":
         if not medium_df.empty:
             medium_counts = medium_df["Ping UTM Medium"].value_counts().reset_index()
             medium_counts.columns = ["UTM Medium", "Count"]
-            fig = px.bar(medium_counts, x="UTM Medium", y="Count", title="Traffic by UTM Medium", color_discrete_sequence=[gsu_colors[1]], color_discrete_sequence=gsu_colors)
+            fig = px.bar(medium_counts, x="UTM Medium", y="Count", title="Traffic by UTM Medium", color_discrete_sequence=[gsu_colors[1]])
             st.plotly_chart(fig, config={'displayModeBar': False})
         else:
             st.info("ℹ️ No UTM Medium data to display.")
@@ -182,7 +182,7 @@ elif view == "Page 3: Engagement & Traffic":
         if not campaign_df.empty:
             campaign_counts = campaign_df["Ping UTM Campaign"].value_counts().reset_index()
             campaign_counts.columns = ["Campaign", "Count"]
-            fig = px.bar(campaign_counts, x="Campaign", y="Count", title="Traffic by UTM Campaign", color_discrete_sequence=[gsu_colors[2]], color_discrete_sequence=gsu_colors)
+            fig = px.bar(campaign_counts, x="Campaign", y="Count", title="Traffic by UTM Campaign", color_discrete_sequence=[gsu_colors[1]])
             st.plotly_chart(fig, config={'displayModeBar': False})
         else:
             st.info("ℹ️ No UTM Campaign data to display.")
@@ -195,11 +195,11 @@ elif view == "Page 3: Engagement & Traffic":
     if "Applications Created Date" in filtered_df.columns:
         created_counts = filtered_df.dropna(subset=["Applications Created Date"])
         if not created_counts.empty:
-            fig = px.histogram(created_counts, x="Applications Created Date", title="Applications Created Over Time", color_discrete_sequence=[gsu_colors[0]], color_discrete_sequence=gsu_colors)
+            fig = px.histogram(created_counts, x="Applications Created Date", title="Applications Created Over Time", color_discrete_sequence=[gsu_colors[1]])
             st.plotly_chart(fig, config={'displayModeBar': False})
 
     if "Applications Submitted Date" in filtered_df.columns:
         submitted_counts = filtered_df.dropna(subset=["Applications Submitted Date"])
         if not submitted_counts.empty:
-            fig = px.histogram(submitted_counts, x="Applications Submitted Date", title="Applications Submitted Over Time", color_discrete_sequence=[gsu_colors[1]], color_discrete_sequence=gsu_colors)
+            fig = px.histogram(submitted_counts, x="Applications Submitted Date", title="Applications Submitted Over Time", color_discrete_sequence=[gsu_colors[1]])
             st.plotly_chart(fig, config={'displayModeBar': False})
