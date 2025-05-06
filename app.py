@@ -7,7 +7,15 @@ from openai import OpenAI
 # --- Setup ---
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 st.set_page_config(layout="wide")
-st.title("📊 GPT-Powered Graduate-Marketing Data Explorer")
+st.markdown(
+    """
+    <div style='display: flex; align-items: center; margin-bottom: 1rem;'>
+        <img src='https://brand.gsu.edu/files/2021/02/gsu_primary_tagline_blue_rgb.png' width='250' style='margin-right: 20px'>
+        <h1 style='font-family: sans-serif; color: #0039A6;'>GPT-Powered Graduate-Marketing Data Explorer</h1>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 # --- Cached functions ---
 @st.cache_data
@@ -110,7 +118,7 @@ if view == "Page 1: Funnel Overview":
     })
     funnel_fig = px.bar(funnel_data, x="Count", y="Stage", orientation="h",
                         text="Count", color="Stage",
-                        title="Lead Funnel", color_discrete_sequence=px.colors.qualitative.Set2, color_discrete_sequence=gsu_colors)
+                        title="Lead Funnel",  color_discrete_sequence=gsu_colors)
     funnel_fig.update_traces(textposition='outside')
     st.plotly_chart(funnel_fig, config={'displayModeBar': False})
 
