@@ -101,7 +101,14 @@ if view == "Page 1: Funnel Overview":
     applicants = len(filtered_df[filtered_df['Person Status'] == 'Applicant'])
     enrolled = len(filtered_df[filtered_df['Person Status'] == 'Enrolled'])
 
-    col1, col2, col3 = st.columns(3)
+    stacked = st.sidebar.checkbox("📱 Mobile View", value=False)
+
+if stacked:
+    st.metric("🧠 Inquiries", inquiries)
+    st.metric("📄 Applicants", applicants)
+    st.metric("🎓 Enrolled", enrolled)
+else:
+col1, col2, col3 = st.columns(3)
     col1.metric("🧠 Inquiries", inquiries)
     col2.metric("📄 Applicants", applicants)
     col3.metric("🎓 Enrolled", enrolled)
@@ -110,9 +117,9 @@ if view == "Page 1: Funnel Overview":
         "Stage": ["Inquiry", "Applicant", "Enrolled"],
         "Count": [inquiries, applicants, enrolled]
     })
-    funnel_fig = px.funnel(funnel_data, x="Count", y="Stage",
+    funnel_fig = px.bar(funnel_data, x="Count", y="Stage",
                         text="Count", color="Stage",
-                        title="Lead Funnel",  color_discrete_sequence=gsu_colors)
+                        title="Lead Funnel",  color_discrete_sequence=gsu_colors, orientation="h")
     funnel_fig.update_traces(textposition='outside')
     st.plotly_chart(funnel_fig, config={'displayModeBar': False})
 
@@ -195,7 +202,7 @@ elif view == "Page 3: Engagement & Traffic":
     if "Applications Created Date" in filtered_df.columns:
         created_counts = filtered_df.dropna(subset=["Applications Created Date"])
         if not created_counts.empty:
-            fig = px.histogram(created_counts, x="Applications Created Date", title="Applications Created Over Time", color_discrete_sequence=[gsu_colors[1]])
+            fig = px.histogram(created_counts, x="Applications Created Date", title="Applications Created Over Time", color_discrete_sequence=[gsu_colors[2]])
             st.plotly_chart(fig, config={'displayModeBar': False})
 
     if "Applications Submitted Date" in filtered_df.columns:
