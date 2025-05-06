@@ -214,46 +214,6 @@ elif view == "Page 3: Engagement & Traffic":
         fig = px.histogram(submitted_counts, x="Applications Submitted Date", title="Applications Submitted Over Time")
         st.plotly_chart(fig, config={'displayModeBar': False})
 
-# --- PAGE 3: Engagement & Traffic ---
-elif view == "Page 3: Engagement & Traffic":
-    st.subheader("📈 Engagement & Traffic Sources")
-
-    if "Ping UTM Source" in filtered_df.columns:
-        traffic_df = filtered_df[filtered_df["Ping UTM Source"].notna()]
-        if not traffic_df.empty:
-            fig = px.pie(traffic_df, names="Ping UTM Source", title="Traffic Sources (Non-null)")
-            st.plotly_chart(fig, config={'displayModeBar': False})
-
-    if "Ping UTM Medium" in filtered_df.columns:
-        medium_df = filtered_df[filtered_df['Ping UTM Medium'].notna()]
-        if not medium_df.empty:
-            medium_counts = medium_df['Ping UTM Medium'].value_counts().reset_index()
-            medium_counts.columns = ["Medium", "Count"]
-            fig = px.bar(medium_counts, x="Medium", y="Count", title="Traffic by UTM Medium")
-            st.plotly_chart(fig, config={'displayModeBar': False})
-
-    if "Ping UTM Campaign" in filtered_df.columns:
-        campaign_df = filtered_df[filtered_df['Ping UTM Campaign'].notna()]
-        if not campaign_df.empty:
-            campaign_counts = campaign_df['Ping UTM Campaign'].value_counts().reset_index()
-            campaign_counts.columns = ["Campaign", "Count"]
-            fig = px.bar(campaign_counts, x="Campaign", y="Count", title="Traffic by UTM Campaign")
-            st.plotly_chart(fig, config={'displayModeBar': False})
-
-    if "Ping Timestamp" in filtered_df.columns:
-        filtered_df["Hour"] = pd.to_datetime(filtered_df["Ping Timestamp"], errors='coerce').dt.hour
-        fig = px.histogram(filtered_df, x="Hour", nbins=24, title="Activity by Hour of Day")
-        st.plotly_chart(fig, config={'displayModeBar': False})
-
-    if "Applications Created Date" in filtered_df.columns:
-        created_counts = filtered_df.dropna(subset=["Applications Created Date"])
-        fig = px.histogram(created_counts, x="Applications Created Date", title="Applications Created Over Time")
-        st.plotly_chart(fig, config={'displayModeBar': False})
-
-    if "Applications Submitted Date" in filtered_df.columns:
-        submitted_counts = filtered_df.dropna(subset=["Applications Submitted Date"])
-        fig = px.histogram(submitted_counts, x="Applications Submitted Date", title="Applications Submitted Over Time")
-        st.plotly_chart(fig, config={'displayModeBar': False})
 
 # Dummy route for page flow (avoid syntax error)
 if view == "Page 2: Geography & Program":
