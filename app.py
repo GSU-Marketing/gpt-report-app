@@ -62,7 +62,7 @@ view = st.sidebar.selectbox("Select Dashboard Page", [
     "Page 3: Engagement & Traffic"
 ])
 
-# --- Filters ---
+# --- Filters with session state ---
 st.sidebar.subheader("🔎 Filter Data")
 programs = ["All"] + sorted(df['Applications Applied Program'].dropna().unique())
 statuses = ["All"] + sorted(df['Person Status'].dropna().unique())
@@ -71,9 +71,20 @@ terms = ["All"] + sorted(df['Applications Applied Term'].dropna().unique())
 if "Prospect" in statuses:
     statuses.remove("Prospect")
 
-selected_program = st.sidebar.selectbox("Program:", programs)
-selected_status = st.sidebar.selectbox("Status:", statuses)
-selected_term = st.sidebar.selectbox("Term:", terms)
+if "program_filter" not in st.session_state:
+    st.session_state.program_filter = "All"
+if "status_filter" not in st.session_state:
+    st.session_state.status_filter = "All"
+if "term_filter" not in st.session_state:
+    st.session_state.term_filter = "All"
+
+selected_program = st.sidebar.selectbox("Program:", programs, index=programs.index(st.session_state.program_filter))
+selected_status = st.sidebar.selectbox("Status:", statuses, index=statuses.index(st.session_state.status_filter))
+selected_term = st.sidebar.selectbox("Term:", terms, index=terms.index(st.session_state.term_filter))
+
+st.session_state.program_filter = selected_program
+st.session_state.status_filter = selected_status
+st.session_state.term_filter = selected_term
 
 filtered_df = get_filtered_data(df, selected_program, selected_status, selected_term)
 
