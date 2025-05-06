@@ -110,7 +110,7 @@ if view == "Page 1: Funnel Overview":
         "Stage": ["Inquiry", "Applicant", "Enrolled"],
         "Count": [inquiries, applicants, enrolled]
     })
-    funnel_fig = px.bar(funnel_data, x="Count", y="Stage", orientation="h",
+    funnel_fig = px.funnel(funnel_data, x="Count", y="Stage",
                         text="Count", color="Stage",
                         title="Lead Funnel",  color_discrete_sequence=gsu_colors)
     funnel_fig.update_traces(textposition='outside')
@@ -162,7 +162,7 @@ elif view == "Page 3: Engagement & Traffic":
     if "Ping UTM Source" in filtered_df.columns:
         traffic_df = filtered_df[filtered_df["Ping UTM Source"].notna()]
         if not traffic_df.empty:
-            fig = px.pie(traffic_df, names="Ping UTM Source", title="Traffic Sources")
+            fig = px.pie(traffic_df, names="Ping UTM Source", title="Traffic Sources", color_discrete_sequence=[gsu_colors[0]])
             st.plotly_chart(fig, config={'displayModeBar': False})
         else:
             st.info("ℹ️ No UTM Source data to display.")
@@ -172,7 +172,7 @@ elif view == "Page 3: Engagement & Traffic":
         if not medium_df.empty:
             medium_counts = medium_df["Ping UTM Medium"].value_counts().reset_index()
             medium_counts.columns = ["UTM Medium", "Count"]
-            fig = px.bar(medium_counts, x="UTM Medium", y="Count", title="Traffic by UTM Medium", color_discrete_sequence=gsu_colors)
+            fig = px.bar(medium_counts, x="UTM Medium", y="Count", title="Traffic by UTM Medium", color_discrete_sequence=[gsu_colors[1]], color_discrete_sequence=gsu_colors)
             st.plotly_chart(fig, config={'displayModeBar': False})
         else:
             st.info("ℹ️ No UTM Medium data to display.")
@@ -182,24 +182,24 @@ elif view == "Page 3: Engagement & Traffic":
         if not campaign_df.empty:
             campaign_counts = campaign_df["Ping UTM Campaign"].value_counts().reset_index()
             campaign_counts.columns = ["Campaign", "Count"]
-            fig = px.bar(campaign_counts, x="Campaign", y="Count", title="Traffic by UTM Campaign", color_discrete_sequence=gsu_colors)
+            fig = px.bar(campaign_counts, x="Campaign", y="Count", title="Traffic by UTM Campaign", color_discrete_sequence=[gsu_colors[2]], color_discrete_sequence=gsu_colors)
             st.plotly_chart(fig, config={'displayModeBar': False})
         else:
             st.info("ℹ️ No UTM Campaign data to display.")
 
     if "Ping Timestamp" in filtered_df.columns:
         filtered_df["Hour"] = pd.to_datetime(filtered_df["Ping Timestamp"], errors='coerce').dt.hour
-        fig = px.histogram(filtered_df.dropna(subset=["Hour"]), x="Hour", nbins=24, title="Activity by Hour of Day")
+        fig = px.histogram(filtered_df.dropna(subset=["Hour"]), x="Hour", nbins=24, title="Activity by Hour of Day", color_discrete_sequence=[gsu_colors[3]])
         st.plotly_chart(fig, config={'displayModeBar': False})
 
     if "Applications Created Date" in filtered_df.columns:
         created_counts = filtered_df.dropna(subset=["Applications Created Date"])
         if not created_counts.empty:
-            fig = px.histogram(created_counts, x="Applications Created Date", title="Applications Created Over Time", color_discrete_sequence=gsu_colors)
+            fig = px.histogram(created_counts, x="Applications Created Date", title="Applications Created Over Time", color_discrete_sequence=[gsu_colors[0]], color_discrete_sequence=gsu_colors)
             st.plotly_chart(fig, config={'displayModeBar': False})
 
     if "Applications Submitted Date" in filtered_df.columns:
         submitted_counts = filtered_df.dropna(subset=["Applications Submitted Date"])
         if not submitted_counts.empty:
-            fig = px.histogram(submitted_counts, x="Applications Submitted Date", title="Applications Submitted Over Time", color_discrete_sequence=gsu_colors)
+            fig = px.histogram(submitted_counts, x="Applications Submitted Date", title="Applications Submitted Over Time", color_discrete_sequence=[gsu_colors[1]], color_discrete_sequence=gsu_colors)
             st.plotly_chart(fig, config={'displayModeBar': False})
