@@ -95,46 +95,46 @@ else:
 
 # --- PAGE 1: Funnel Overview ---
 if view == "Page 1: Funnel Overview":
-    st.subheader("🎯 Lead Funnel Overview")
+        st.subheader("🎯 Lead Funnel Overview")
 
-    inquiries = len(filtered_df[filtered_df['Person Status'] == 'Inquiry'])
-    applicants = len(filtered_df[filtered_df['Person Status'] == 'Applicant'])
-    enrolled = len(filtered_df[filtered_df['Person Status'] == 'Enrolled'])
+        inquiries = len(filtered_df[filtered_df['Person Status'] == 'Inquiry'])
+        applicants = len(filtered_df[filtered_df['Person Status'] == 'Applicant'])
+        enrolled = len(filtered_df[filtered_df['Person Status'] == 'Enrolled'])
 
-    stacked = st.sidebar.checkbox("📱 Mobile View", value=False)
+        stacked = st.sidebar.checkbox("📱 Mobile View", value=False)
 
-if stacked:
-    st.metric("🧠 Inquiries", inquiries)
-    st.metric("📄 Applicants", applicants)
-    st.metric("🎓 Enrolled", enrolled)
-else:
-    col1, col2, col3 = st.columns(3)
-    col1.metric("🧠 Inquiries", inquiries)
-    col2.metric("📄 Applicants", applicants)
-    col3.metric("🎓 Enrolled", enrolled)
-    funnel_data = pd.DataFrame({
-        "Stage": ["Inquiry", "Applicant", "Enrolled"],
-        "Count": [inquiries, applicants, enrolled]
-    })
-    funnel_fig = px.bar(funnel_data, x="Count", y="Stage",
-                        text="Count", color="Stage",
-                        title="Lead Funnel",  color_discrete_sequence=gsu_colors, orientation="h")
-    funnel_fig.update_traces(textposition='outside')
-    st.plotly_chart(funnel_fig, config={'displayModeBar': False})
+    if stacked:
+        st.metric("🧠 Inquiries", inquiries)
+        st.metric("📄 Applicants", applicants)
+        st.metric("🎓 Enrolled", enrolled)
+    else:
+        col1, col2, col3 = st.columns(3)
+        col1.metric("🧠 Inquiries", inquiries)
+        col2.metric("📄 Applicants", applicants)
+        col3.metric("🎓 Enrolled", enrolled)
+        funnel_data = pd.DataFrame({
+            "Stage": ["Inquiry", "Applicant", "Enrolled"],
+            "Count": [inquiries, applicants, enrolled]
+        })
+        funnel_fig = px.bar(funnel_data, x="Count", y="Stage",
+                            text="Count", color="Stage",
+                            title="Lead Funnel",  color_discrete_sequence=gsu_colors, orientation="h")
+        funnel_fig.update_traces(textposition='outside')
+        st.plotly_chart(funnel_fig, config={'displayModeBar': False})
 
-    leads_over_time = filtered_df[filtered_df['Person Status'].isin(['Inquiry', 'Applicant', 'Enrolled'])]
-    leads_over_time = leads_over_time.dropna(subset=["Ping Timestamp"])
-    fig = px.histogram(leads_over_time, x="Ping Timestamp", color="Person Status", barmode="group",
-                       title="Leads Over Time", color_discrete_sequence=gsu_colors)
-    st.plotly_chart(fig, use_container_width=stacked, config={'displayModeBar': False})
+        leads_over_time = filtered_df[filtered_df['Person Status'].isin(['Inquiry', 'Applicant', 'Enrolled'])]
+        leads_over_time = leads_over_time.dropna(subset=["Ping Timestamp"])
+        fig = px.histogram(leads_over_time, x="Ping Timestamp", color="Person Status", barmode="group",
+                           title="Leads Over Time", color_discrete_sequence=gsu_colors)
+        st.plotly_chart(fig, use_container_width=stacked, config={'displayModeBar': False})
 
-    df_term = filtered_df.copy()
-    df_term["Term"] = df_term["Applications Applied Term"].combine_first(df_term["Person Inquiry Term"])
-    df_term = df_term[df_term["Person Status"].isin(["Inquiry", "Applicant", "Enrolled"])]
-    term_counts = df_term.groupby(["Term", "Person Status"]).size().reset_index(name="Count")
-    fig = px.bar(term_counts, x="Term", y="Count", color="Person Status", barmode="group",
-                 title="Leads by Term", color_discrete_sequence=gsu_colors)
-    st.plotly_chart(fig, use_container_width=stacked, config={'displayModeBar': False})
+        df_term = filtered_df.copy()
+        df_term["Term"] = df_term["Applications Applied Term"].combine_first(df_term["Person Inquiry Term"])
+        df_term = df_term[df_term["Person Status"].isin(["Inquiry", "Applicant", "Enrolled"])]
+        term_counts = df_term.groupby(["Term", "Person Status"]).size().reset_index(name="Count")
+        fig = px.bar(term_counts, x="Term", y="Count", color="Person Status", barmode="group",
+                     title="Leads by Term", color_discrete_sequence=gsu_colors)
+        st.plotly_chart(fig, use_container_width=stacked, config={'displayModeBar': False})
 
 # --- PAGE 2: Geography & Program ---
 
@@ -143,7 +143,7 @@ elif view == "Page 2: Geography & Program":
 
     top_programs = filtered_df['Applications Applied Program'].value_counts().head(10).reset_index()
     top_programs.columns = ['Program', 'Count']
-    fig = px.bar(top_programs, x=\'Count\', y=\'Program\', orientation=\'v\' if stacked else \'h\', title="Top Applied Programs", color_discrete_sequence=gsu_colors)
+    fig = px.bar(top_programs, x='Count', y='Program', orientation='v' if stacked else 'h', title="Top Applied Programs", color_discrete_sequence=gsu_colors)
     st.plotly_chart(fig, use_container_width=stacked, config={'displayModeBar': False})
 
     # Registration Hours by Term (replacement for modality)
@@ -154,10 +154,10 @@ elif view == "Page 2: Geography & Program":
     show_avg = st.sidebar.checkbox("Show Average Hours per Person", value=False)
     if show_avg:
         avg_df = melted.groupby("Term")["Hours"].mean().reset_index()
-        fig = px.bar(avg_df, x="Term", y="Hours", title="\2 Registration Hours by Term", orientation=\'v\' if stacked else \'h\', color_discrete_sequence=gsu_colors)
+        fig = px.bar(avg_df, x="Term", y="Hours", title="Registration Hours by Term", orientation=\'v\' if stacked else \'h\', color_discrete_sequence=gsu_colors)
     else:
         sum_df = melted.groupby("Term")["Hours"].sum().reset_index()
-        fig = px.bar(sum_df, x="Term", y="Hours", title="\2 Registration Hours by Term", orientation=\'v\' if stacked else \'h\', color_discrete_sequence=gsu_colors)
+        fig = px.bar(sum_df, x="Term", y="Hours", title="Registration Hours by Term", orientation=\'v\' if stacked else \'h\', color_discrete_sequence=gsu_colors)
 
     st.plotly_chart(fig, use_container_width=stacked, config={'displayModeBar': False})
 
