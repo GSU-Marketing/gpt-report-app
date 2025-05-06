@@ -22,13 +22,13 @@ def preprocess_timestamps(df):
     return df
 
 @st.cache_data
-def get_filtered_data(df, programs, statuses, terms):
-    if programs and "All" not in programs:
-        df = df[df['Applications Applied Program'].isin(programs)]
-    if statuses and "All" not in statuses:
-        df = df[df['Person Status'].isin(statuses)]
-    if terms and "All" not in terms:
-        df = df[df['Applications Applied Term'].isin(terms)]
+def get_filtered_data(df, program, status, term):
+    if program != "All":
+        df = df[df['Applications Applied Program'] == program]
+    if status != "All":
+        df = df[df['Person Status'] == status]
+    if term != "All":
+        df = df[df['Applications Applied Term'] == term]
     return df
 
 DEFAULT_DATA_URL = "https://raw.githubusercontent.com/GSU-Marketing/gpt-report-app/main/streamlit-test.parquet"
@@ -68,11 +68,14 @@ programs = ["All"] + sorted(df['Applications Applied Program'].dropna().unique()
 statuses = ["All"] + sorted(df['Person Status'].dropna().unique())
 terms = ["All"] + sorted(df['Applications Applied Term'].dropna().unique())
 
-selected_programs = st.sidebar.multiselect("Programs:", programs, default=["All"])
-selected_statuses = st.sidebar.multiselect("Statuses:", statuses, default=["All"])
-selected_terms = st.sidebar.multiselect("Terms:", terms, default=["All"])
+if "Prospect" in statuses:
+    statuses.remove("Prospect")
 
-filtered_df = get_filtered_data(df, selected_programs, selected_statuses, selected_terms)
+selected_program = st.sidebar.selectbox("Program:", programs)
+selected_status = st.sidebar.selectbox("Status:", statuses)
+selected_term = st.sidebar.selectbox("Term:", terms)
+
+filtered_df = get_filtered_data(df, selected_program, selected_status, selected_term)
 
 # Dummy route for page flow (avoid syntax error)
 if view == "Page 2: Geography & Program":
@@ -83,11 +86,11 @@ if view == "Page 2: Geography & Program":
     fig = px.bar(top_programs, x='Count', y='Program', orientation='h', title="Top Applied Programs")
     st.plotly_chart(fig, config={'displayModeBar': False})
 
-    if "Applications Created Date" in filtered_df.columns and "Application APOS Program Modality" in filtered_df.columns:
-        modality_df = filtered_df.dropna(subset=["Applications Created Date", "Application APOS Program Modality"])
+    if "Application APOS Program Modality" in filtered_df.columns:
+        modality_df = filtered_df.dropna(subset=["Application APOS Program Modality"])
         modality_counts = modality_df["Application APOS Program Modality"].value_counts().reset_index()
         modality_counts.columns = ["Modality", "Count"]
-        fig = px.pie(modality_counts, names="Modality", values="Count", title="Modality Distribution (by Application Created Date)")
+        fig = px.pie(modality_counts, names="Modality", values="Count", title="Modality Distribution")
         st.plotly_chart(fig, config={'displayModeBar': False})
 
     if all(col in filtered_df.columns for col in ["Ping Timestamp", "Person Citizenship", "Person Status", "Ping IP Address"]):
