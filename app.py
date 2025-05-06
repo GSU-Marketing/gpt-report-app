@@ -274,8 +274,7 @@ if view == "Page 2: Geography & Program":
             st.plotly_chart(fig, config={'displayModeBar': False})
         else:
             st.info("ℹ️ No modality data available for the current filters.")
-        else:
-            st.info("ℹ️ No modality data available for the current filters.")
+
 
     if all(col in filtered_df.columns for col in ["Ping Timestamp", "Person Citizenship", "Person Status", "Ping IP Address"]):
         filtered_df["Citizenship Type"] = filtered_df["Person Citizenship"].str.lower().fillna("").apply(lambda x: "Domestic" if x == "united states" else "International")
