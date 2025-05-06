@@ -7,7 +7,7 @@ from openai import OpenAI
 # --- Setup ---
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 st.set_page_config(layout="wide")
-st.title("📊 GPT-Powered Graduate Data Explorer")
+st.title("📊 GPT-Powered Graduate-Marketing Data Explorer")
 
 # --- Cached functions ---
 @st.cache_data
