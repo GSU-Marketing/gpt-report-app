@@ -7,6 +7,7 @@ from openai import OpenAI
 # --- Setup ---
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 st.set_page_config(layout="wide")
+gsu_colors = ["#0039A6", "#A2AAAD", "#FDB913", "#C8102E"]
 st.markdown(
     """
     <div style='display: flex; align-items: center; margin-bottom: 1rem;'>
