@@ -8,15 +8,8 @@ from openai import OpenAI
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 st.set_page_config(layout="wide")
 gsu_colors = ["#0039A6", "#A2AAAD", "#FDB913", "#C8102E"]
-st.markdown(
-    """
-    <div style='display: flex; align-items: center; margin-bottom: 1rem;'>
-        <img src='https://brand.gsu.edu/files/2021/02/gsu_primary_tagline_blue_rgb.png' width='250' style='margin-right: 20px'>
-        <h1 style='font-family: sans-serif; color: #0039A6;'>GPT-Powered Graduate-Marketing Data Explorer</h1>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+st.image("GSU Logo Stacked.png", width=160)
+st.markdown("## GPT-Powered Graduate-Marketing Data Explorer", unsafe_allow_html=True)
 
 # --- Cached functions ---
 @st.cache_data
