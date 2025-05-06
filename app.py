@@ -196,7 +196,7 @@ elif view == "Page 3: Engagement & Traffic":
 
     if "Ping Timestamp" in filtered_df.columns:
         filtered_df["Hour"] = pd.to_datetime(filtered_df["Ping Timestamp"], errors='coerce').dt.hour
-        fig = px.histogram(filtered_df.dropna(subset=["Hour"], color_discrete_sequence=gsu_colors), x="Hour", nbins=24, title="Activity by Hour of Day")
+        fig = px.histogram(filtered_df.dropna(subset=["Hour"]), x="Hour", nbins=24, title="Activity by Hour of Day")
         st.plotly_chart(fig, config={'displayModeBar': False})
 
     if "Applications Created Date" in filtered_df.columns:
