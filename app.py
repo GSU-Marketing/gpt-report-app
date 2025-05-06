@@ -137,6 +137,7 @@ else:
     st.plotly_chart(fig, use_container_width=stacked, config={'displayModeBar': False})
 
 # --- PAGE 2: Geography & Program ---
+
 elif view == "Page 2: Geography & Program":
     st.subheader("🌍 Geography & Program Breakdown")
 
