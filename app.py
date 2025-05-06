@@ -7,7 +7,7 @@ from openai import OpenAI
 # --- Setup ---
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 st.set_page_config(layout="wide")
-gsu_colors = ["#0039A6", "#A2AAAD", "#FDB913", "#C8102E"]
+gsu_colors = ['#0055CC', '#FF6F61', '#FDB913', '#C8102E']
 st.image("GSU Logo Stacked.png", width=160)
 st.markdown("## GPT-Powered Graduate-Marketing Data Explorer", unsafe_allow_html=True)
 
@@ -162,7 +162,7 @@ elif view == "Page 3: Engagement & Traffic":
     if "Ping UTM Source" in filtered_df.columns:
         traffic_df = filtered_df[filtered_df["Ping UTM Source"].notna()]
         if not traffic_df.empty:
-            fig = px.pie(traffic_df, names="Ping UTM Source", title="Traffic Sources (UTM Source, color_discrete_sequence=gsu_colors)")
+            fig = px.pie(traffic_df, names="Ping UTM Source", title="Traffic Sources")
             st.plotly_chart(fig, config={'displayModeBar': False})
         else:
             st.info("ℹ️ No UTM Source data to display.")
