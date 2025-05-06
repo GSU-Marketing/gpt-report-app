@@ -108,11 +108,10 @@ if stacked:
     st.metric("📄 Applicants", applicants)
     st.metric("🎓 Enrolled", enrolled)
 else:
-col1, col2, col3 = st.columns(3)
+    col1, col2, col3 = st.columns(3)
     col1.metric("🧠 Inquiries", inquiries)
     col2.metric("📄 Applicants", applicants)
     col3.metric("🎓 Enrolled", enrolled)
-
     funnel_data = pd.DataFrame({
         "Stage": ["Inquiry", "Applicant", "Enrolled"],
         "Count": [inquiries, applicants, enrolled]
@@ -127,7 +126,7 @@ col1, col2, col3 = st.columns(3)
     leads_over_time = leads_over_time.dropna(subset=["Ping Timestamp"])
     fig = px.histogram(leads_over_time, x="Ping Timestamp", color="Person Status", barmode="group",
                        title="Leads Over Time", color_discrete_sequence=gsu_colors)
-    st.plotly_chart(fig, config={'displayModeBar': False})
+    st.plotly_chart(fig, use_container_width=stacked, config={'displayModeBar': False})
 
     df_term = filtered_df.copy()
     df_term["Term"] = df_term["Applications Applied Term"].combine_first(df_term["Person Inquiry Term"])
@@ -135,7 +134,7 @@ col1, col2, col3 = st.columns(3)
     term_counts = df_term.groupby(["Term", "Person Status"]).size().reset_index(name="Count")
     fig = px.bar(term_counts, x="Term", y="Count", color="Person Status", barmode="group",
                  title="Leads by Term", color_discrete_sequence=gsu_colors)
-    st.plotly_chart(fig, config={'displayModeBar': False})
+    st.plotly_chart(fig, use_container_width=stacked, config={'displayModeBar': False})
 
 # --- PAGE 2: Geography & Program ---
 elif view == "Page 2: Geography & Program":
@@ -143,8 +142,8 @@ elif view == "Page 2: Geography & Program":
 
     top_programs = filtered_df['Applications Applied Program'].value_counts().head(10).reset_index()
     top_programs.columns = ['Program', 'Count']
-    fig = px.bar(top_programs, x='Count', y='Program', orientation='h', title="Top Applied Programs", color_discrete_sequence=gsu_colors)
-    st.plotly_chart(fig, config={'displayModeBar': False})
+    fig = px.bar(top_programs, x=\'Count\', y=\'Program\', orientation=\'v\' if stacked else \'h\', title="Top Applied Programs", color_discrete_sequence=gsu_colors)
+    st.plotly_chart(fig, use_container_width=stacked, config={'displayModeBar': False})
 
     # Registration Hours by Term (replacement for modality)
     reg_cols = [col for col in filtered_df.columns if "Registration Hours" in col]
@@ -154,12 +153,12 @@ elif view == "Page 2: Geography & Program":
     show_avg = st.sidebar.checkbox("Show Average Hours per Person", value=False)
     if show_avg:
         avg_df = melted.groupby("Term")["Hours"].mean().reset_index()
-        fig = px.bar(avg_df, x="Term", y="Hours", title="Average Registration Hours by Term", color_discrete_sequence=gsu_colors)
+        fig = px.bar(avg_df, x="Term", y="Hours", title="\2 Registration Hours by Term", orientation=\'v\' if stacked else \'h\', color_discrete_sequence=gsu_colors)
     else:
         sum_df = melted.groupby("Term")["Hours"].sum().reset_index()
-        fig = px.bar(sum_df, x="Term", y="Hours", title="Total Registration Hours by Term", color_discrete_sequence=gsu_colors)
+        fig = px.bar(sum_df, x="Term", y="Hours", title="\2 Registration Hours by Term", orientation=\'v\' if stacked else \'h\', color_discrete_sequence=gsu_colors)
 
-    st.plotly_chart(fig, config={'displayModeBar': False})
+    st.plotly_chart(fig, use_container_width=stacked, config={'displayModeBar': False})
 
 
 # --- PAGE 3: Engagement & Traffic ---
@@ -170,7 +169,7 @@ elif view == "Page 3: Engagement & Traffic":
         traffic_df = filtered_df[filtered_df["Ping UTM Source"].notna()]
         if not traffic_df.empty:
             fig = px.pie(traffic_df, names="Ping UTM Source", title="Traffic Sources", color_discrete_sequence=[gsu_colors[0]])
-            st.plotly_chart(fig, config={'displayModeBar': False})
+            st.plotly_chart(fig, use_container_width=stacked, config={'displayModeBar': False})
         else:
             st.info("ℹ️ No UTM Source data to display.")
 
@@ -180,7 +179,7 @@ elif view == "Page 3: Engagement & Traffic":
             medium_counts = medium_df["Ping UTM Medium"].value_counts().reset_index()
             medium_counts.columns = ["UTM Medium", "Count"]
             fig = px.bar(medium_counts, x="UTM Medium", y="Count", title="Traffic by UTM Medium", color_discrete_sequence=[gsu_colors[1]])
-            st.plotly_chart(fig, config={'displayModeBar': False})
+            st.plotly_chart(fig, use_container_width=stacked, config={'displayModeBar': False})
         else:
             st.info("ℹ️ No UTM Medium data to display.")
 
@@ -190,23 +189,23 @@ elif view == "Page 3: Engagement & Traffic":
             campaign_counts = campaign_df["Ping UTM Campaign"].value_counts().reset_index()
             campaign_counts.columns = ["Campaign", "Count"]
             fig = px.bar(campaign_counts, x="Campaign", y="Count", title="Traffic by UTM Campaign", color_discrete_sequence=[gsu_colors[1]])
-            st.plotly_chart(fig, config={'displayModeBar': False})
+            st.plotly_chart(fig, use_container_width=stacked, config={'displayModeBar': False})
         else:
             st.info("ℹ️ No UTM Campaign data to display.")
 
     if "Ping Timestamp" in filtered_df.columns:
         filtered_df["Hour"] = pd.to_datetime(filtered_df["Ping Timestamp"], errors='coerce').dt.hour
         fig = px.histogram(filtered_df.dropna(subset=["Hour"]), x="Hour", nbins=24, title="Activity by Hour of Day", color_discrete_sequence=[gsu_colors[3]])
-        st.plotly_chart(fig, config={'displayModeBar': False})
+        st.plotly_chart(fig, use_container_width=stacked, config={'displayModeBar': False})
 
     if "Applications Created Date" in filtered_df.columns:
         created_counts = filtered_df.dropna(subset=["Applications Created Date"])
         if not created_counts.empty:
             fig = px.histogram(created_counts, x="Applications Created Date", title="Applications Created Over Time", color_discrete_sequence=[gsu_colors[2]])
-            st.plotly_chart(fig, config={'displayModeBar': False})
+            st.plotly_chart(fig, use_container_width=stacked, config={'displayModeBar': False})
 
     if "Applications Submitted Date" in filtered_df.columns:
         submitted_counts = filtered_df.dropna(subset=["Applications Submitted Date"])
         if not submitted_counts.empty:
             fig = px.histogram(submitted_counts, x="Applications Submitted Date", title="Applications Submitted Over Time", color_discrete_sequence=[gsu_colors[1]])
-            st.plotly_chart(fig, config={'displayModeBar': False})
+            st.plotly_chart(fig, use_container_width=stacked, config={'displayModeBar': False})
