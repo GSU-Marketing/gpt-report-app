@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -9,7 +8,6 @@ import base64
 import pickle
 import io
 
-
 # --- Setup ---
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 st.set_page_config(layout="wide")
@@ -18,8 +16,6 @@ st.image("GSU Logo Stacked.png", width=160)
 st.markdown("## GPT-Powered Graduate-Marketing Data Explorer", unsafe_allow_html=True)
 
 # --- Cached functions ---
-
-
 @st.cache_data
 def preprocess_timestamps(df):
     for col in ["Ping Timestamp", "Applications Created Date", "Applications Submitted Date"]:
@@ -56,7 +52,6 @@ def load_data_from_gdrive():
     fh.seek(0)
     return pd.read_parquet(fh)
 
-
 # --- Load Data ---
 try:
     st.sidebar.subheader("📂 Upload or Use Default")
@@ -72,8 +67,7 @@ try:
     elif "gdrive" in st.secrets:
         df = load_data_from_gdrive()
         st.sidebar.success("✅ Using secure Google Drive data.")
-        st.sidebar.caption("🔒 Data Source: Private Google Drive")
-
+        st.sidebar.caption("🔐 Data Source: Private Google Drive")
     else:
         st.error("🚨 No data source available. Please upload a file or configure Google Drive access.")
         st.stop()
@@ -82,9 +76,8 @@ try:
 
 except Exception as load_error:
     st.error("🚨 Failed to load data. Please try refreshing the app.")
-    st.exception(load_error)  # This will show the error traceback
+    st.exception(load_error)
     st.stop()
-
 
 # --- Sidebar View Switcher ---
 view = st.sidebar.selectbox("Select Dashboard Page", [
@@ -164,41 +157,39 @@ if view == "Page 1: Funnel Overview":
                  title="Leads by Term", color_discrete_sequence=gsu_colors)
     st.plotly_chart(fig, use_container_width=stacked, config={'displayModeBar': False})
 
-
 # --- PAGE 2: Geography & Program ---
 elif view == "Page 2: Geography & Program":
-    st.subheader("🌍 Geography & Program Breakdown")
+    st.subheader("\U0001F30D Geography & Program Breakdown")
 
     top_programs = (
-    filtered_df[filtered_df['Applications Applied Program'].notna()]
-    ['Applications Applied Program']
-    .value_counts()
-    .head(10)
-    .reset_index()
-)
-top_programs.columns = ['Program', 'Count']  # This order is now correct
-top_programs['Program'] = top_programs['Program'].astype(str)  # Extra safety
+        filtered_df[filtered_df['Applications Applied Program'].notna()]
+        ['Applications Applied Program']
+        .value_counts()
+        .head(10)
+        .reset_index()
+    )
+    top_programs.columns = ['Program', 'Count']
+    top_programs['Program'] = top_programs['Program'].astype(str)
 
-fig = px.bar(top_programs, x='Count', y='Program', orientation='h', title="Top Applied Programs",
+    fig = px.bar(top_programs, x='Count', y='Program', orientation='h', title="Top Applied Programs",
                  color_discrete_sequence=gsu_colors)
-st.plotly_chart(fig, config={'displayModeBar': False})
+    st.plotly_chart(fig, config={'displayModeBar': False})
 
-    # Registration Hours by Term (replacement for modality)
-reg_cols = [col for col in filtered_df.columns if "Registration Hours" in col]
-reg_df = filtered_df[reg_cols].copy()
-melted = reg_df.melt(var_name="Term", value_name="Hours").dropna()
+    reg_cols = [col for col in filtered_df.columns if "Registration Hours" in col]
+    reg_df = filtered_df[reg_cols].copy()
+    melted = reg_df.melt(var_name="Term", value_name="Hours").dropna()
 
-show_avg = st.sidebar.checkbox("Show Average Hours per Person", value=False)
-if show_avg:
+    show_avg = st.sidebar.checkbox("Show Average Hours per Person", value=False)
+    if show_avg:
         avg_df = melted.groupby("Term")["Hours"].mean().reset_index()
         fig = px.bar(avg_df, x="Term", y="Hours", title="Average Registration Hours by Term",
                      color_discrete_sequence=gsu_colors)
-else:
+    else:
         sum_df = melted.groupby("Term")["Hours"].sum().reset_index()
         fig = px.bar(sum_df, x="Term", y="Hours", title="Total Registration Hours by Term",
                      color_discrete_sequence=gsu_colors)
 
-st.plotly_chart(fig, config={'displayModeBar': False})
+    st.plotly_chart(fig, config={'displayModeBar': False})
 
 # --- PAGE 3: Engagement & Traffic ---
 elif view == "Page 3: Engagement & Traffic":
