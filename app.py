@@ -82,8 +82,8 @@ except Exception as load_error:
 # --- Sidebar View Switcher ---
 view = st.sidebar.selectbox("Select Dashboard Page", [
     "Page 1: Funnel Overview",
-    "Page 2: Geography & Program",
-    "Page 3: Engagement & Traffic"
+    "Page 2: Program & Registration Hours",
+    "Page 3: Engagement & Channels"
 ])
 
 # --- Filters with session state ---
