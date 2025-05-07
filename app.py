@@ -201,6 +201,7 @@ else:
 st.plotly_chart(fig, config={'displayModeBar': False})
 
 # --- PAGE 3: Engagement & Traffic ---
+
 elif view == "Page 3: Engagement & Traffic":
     st.subheader("📈 Engagement & Traffic Sources")
 
