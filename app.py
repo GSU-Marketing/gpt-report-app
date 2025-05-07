@@ -122,84 +122,48 @@ for col in filtered_df.columns:
         filtered_df[col] = filtered_df[col].astype(str).str.strip()
         filtered_df = filtered_df[filtered_df[col].str.lower() != "nan"]
 
-# --- GPT Summary ---
+# --- GPT Integration ---
 st.sidebar.markdown("---")
 st.sidebar.subheader("💬 Ask a question about your data")
 user_question = st.sidebar.text_area("What would you like to know?", placeholder="e.g. What is the most common program?", height=100)
+
 if user_question:
     with st.spinner("Asking AI..."):
         data_sample = filtered_df.head(300).to_csv(index=False)
-        response = client.chat.completions.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "You are a data analyst assistant that answers questions about CSV-style data."},
-                {"role": "user", "content": f"Here is the data:\n\n{data_sample}\n\nQuestion: {user_question}"}
-            ],
-            temperature=0.4
-        )
-        st.sidebar.success("✅ Answer ready")
-        st.sidebar.write(response.choices[0].message.content)
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You are a data analyst assistant that answers questions about CSV-style data."},
+                    {"role": "user", "content": f"Here is the data:\n\n{data_sample}\n\nQuestion: {user_question}"}
+                ],
+                temperature=0.4
+            )
+            st.sidebar.success("✅ Answer ready")
+            st.sidebar.write(response.choices[0].message.content)
+        except Exception:
+            st.sidebar.error("⚠️ Failed to fetch response from OpenAI. Try again later.")
 
-# Optional auto-summary
 if st.sidebar.checkbox("🧠 Show automatic summary", value=False):
     with st.spinner("Generating summary..."):
-        summary_sample = filtered_df.head(300).to_csv(index=False)
-        auto_response = client.chat.completions.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "You are a data analyst. Summarize the following dataset."},
-                {"role": "user", "content": summary_sample}
-            ],
-            temperature=0.4
-        )
-        st.sidebar.markdown("### 📊 Data Summary")
-        st.sidebar.write(auto_response.choices[0].message.content)
-
-# Auto summaries for each page
-if view == "Page 1: Funnel Overview":
-    if st.sidebar.checkbox("🧠 Show Page Summary", value=True):
-        st.markdown("### 🧠 Summary")
-        with st.spinner("Summarizing Page 1..."):
-            sample = filtered_df.head(300).to_csv(index=False)
-            summary = client.chat.completions.create(
+        sample = filtered_df.head(300).to_csv(index=False)
+        try:
+            auto_summary = client.chat.completions.create(
                 model="gpt-4",
                 messages=[
-                    {"role": "system", "content": "You are a data analyst providing a brief summary of the data."},
-                    {"role": "user", "content": f"Summarize this data for a funnel analysis:\n\n{sample}"}
+                    {"role": "system", "content": "You are a data analyst. Summarize the following dataset."},
+                    {"role": "user", "content": sample}
                 ],
                 temperature=0.4
             )
-            st.info(summary.choices[0].message.content)
+            st.sidebar.markdown("### 📊 Data Summary")
+            st.sidebar.write(auto_summary.choices[0].message.content)
+        except Exception:
+            st.sidebar.warning("⚠️ OpenAI summary failed or exceeded rate limit.")
 
-elif view == "Page 2: Geography & Program":
-    if st.sidebar.checkbox("🧠 Show Page Summary", value=True):
-        st.markdown("### 🧠 Summary")
-        with st.spinner("Summarizing Page 2..."):
-            sample = filtered_df.head(300).to_csv(index=False)
-            summary = client.chat.completions.create(
-                model="gpt-4",
-                messages=[
-                    {"role": "system", "content": "You are a data analyst providing a summary focused on geography and programs."},
-                    {"role": "user", "content": f"Summarize this data with attention to geographic and program details:\n\n{sample}"}
-                ],
-                temperature=0.4
-            )
-            st.info(summary.choices[0].message.content)
+# Additional Page Summaries can be added below
+# --- CONTINUE WITH VISUALIZATIONS FOR EACH PAGE BELOW THIS LINE ---
 
-elif view == "Page 3: Engagement & Traffic":
-    if st.sidebar.checkbox("🧠 Show Page Summary", value=True):
-        st.markdown("### 🧠 Summary")
-        with st.spinner("Summarizing Page 3..."):
-            sample = filtered_df.head(300).to_csv(index=False)
-            summary = client.chat.completions.create(
-                model="gpt-4",
-                messages=[
-                    {"role": "system", "content": "You are a data analyst summarizing UTM and engagement metrics."},
-                    {"role": "user", "content": f"Summarize this marketing traffic data:\n\n{sample}"}
-                ],
-                temperature=0.4
-            )
-            st.info(summary.choices[0].message.content)
 
 # You can now continue each page's visualization logic below...
 
