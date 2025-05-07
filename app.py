@@ -122,47 +122,10 @@ for col in filtered_df.columns:
         filtered_df[col] = filtered_df[col].astype(str).str.strip()
         filtered_df = filtered_df[filtered_df[col].str.lower() != "nan"]
 
-# --- GPT Integration ---
-st.sidebar.markdown("---")
-st.sidebar.subheader("💬 Ask a question about your data")
-user_question = st.sidebar.text_area("What would you like to know?", placeholder="e.g. What is the most common program?", height=100)
+# GPT INTERACTION AND VISUALIZATION PAGES FOLLOW THIS POINT ---
 
-if user_question:
-    with st.spinner("Asking AI..."):
-        data_sample = filtered_df.head(300).to_csv(index=False)
-        try:
-            response = client.chat.completions.create(
-                model="gpt-4",
-                messages=[
-                    {"role": "system", "content": "You are a data analyst assistant that answers questions about CSV-style data."},
-                    {"role": "user", "content": f"Here is the data:\n\n{data_sample}\n\nQuestion: {user_question}"}
-                ],
-                temperature=0.4
-            )
-            st.sidebar.success("✅ Answer ready")
-            st.sidebar.write(response.choices[0].message.content)
-        except Exception:
-            st.sidebar.error("⚠️ Failed to fetch response from OpenAI. Try again later.")
+# (You can now continue here with visualizations for Pages 1, 2, and 3.)
 
-if st.sidebar.checkbox("🧠 Show automatic summary", value=False):
-    with st.spinner("Generating summary..."):
-        sample = filtered_df.head(300).to_csv(index=False)
-        try:
-            auto_summary = client.chat.completions.create(
-                model="gpt-4",
-                messages=[
-                    {"role": "system", "content": "You are a data analyst. Summarize the following dataset."},
-                    {"role": "user", "content": sample}
-                ],
-                temperature=0.4
-            )
-            st.sidebar.markdown("### 📊 Data Summary")
-            st.sidebar.write(auto_summary.choices[0].message.content)
-        except Exception:
-            st.sidebar.warning("⚠️ OpenAI summary failed or exceeded rate limit.")
-
-# Additional Page Summaries can be added below
-# --- CONTINUE WITH VISUALIZATIONS FOR EACH PAGE BELOW THIS LINE ---
 
 
 # You can now continue each page's visualization logic below...
