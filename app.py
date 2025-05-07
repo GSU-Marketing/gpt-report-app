@@ -152,10 +152,12 @@ if view == "Page 1: Funnel Overview":
     df_term = filtered_df.copy()
     df_term["Term"] = df_term["Applications Applied Term"].combine_first(df_term["Person Inquiry Term"])
     df_term = df_term[df_term["Person Status"].isin(["Inquiry", "Applicant", "Enrolled"])]
+    df_term = df_term[df_term["Term"].notna() & (df_term["Term"].astype(str).str.strip() != "") & (df_term["Term"].astype(str).str.lower() != "nan")]
     term_counts = df_term.groupby(["Term", "Person Status"]).size().reset_index(name="Count")
     fig = px.bar(term_counts, x="Term", y="Count", color="Person Status", barmode="group",
                  title="Leads by Term", color_discrete_sequence=gsu_colors)
     st.plotly_chart(fig, use_container_width=stacked, config={'displayModeBar': False})
+
 
 # --- PAGE 2: Geography & Program ---
 elif view == "Page 2: Geography & Program":
