@@ -82,6 +82,7 @@ try:
 
 except Exception as load_error:
     st.error("🚨 Failed to load data. Please try refreshing the app.")
+    st.exception(load_error)  # This will show the error traceback
     st.stop()
 
 
