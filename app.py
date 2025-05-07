@@ -172,17 +172,18 @@ elif view == "Page 2: Geography & Program":
     st.subheader("🌍 Geography & Program Breakdown")
 
     top_programs = (
-    filtered_df['Applications Applied Program']
-    .dropna()  # 👈 remove NaN rows
+    filtered_df[filtered_df['Applications Applied Program'].notna()]
+    ['Applications Applied Program']
     .value_counts()
     .head(10)
     .reset_index()
 )
+top_programs.columns = ['Program', 'Count']  # This order is now correct
+top_programs['Program'] = top_programs['Program'].astype(str)  # Extra safety
 
-    top_programs.columns = ['Program', 'Count']
-    fig = px.bar(top_programs, x='Count', y='Program', orientation='h', title="Top Applied Programs",
+fig = px.bar(top_programs, x='Count', y='Program', orientation='h', title="Top Applied Programs",
                  color_discrete_sequence=gsu_colors)
-    st.plotly_chart(fig, config={'displayModeBar': False})
+st.plotly_chart(fig, config={'displayModeBar': False})
 
     # Registration Hours by Term (replacement for modality)
     reg_cols = [col for col in filtered_df.columns if "Registration Hours" in col]
