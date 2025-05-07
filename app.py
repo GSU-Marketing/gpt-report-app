@@ -3,6 +3,12 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from openai import OpenAI
+from googleapiclient.discovery import build
+from google.oauth2.credentials import Credentials
+import base64
+import pickle
+import io
+
 
 # --- Setup ---
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
@@ -33,7 +39,25 @@ def get_filtered_data(df, program, status, term):
         df = df[df['Applications Applied Term'] == term]
     return df
 
-DEFAULT_DATA_URL = "https://raw.githubusercontent.com/GSU-Marketing/gpt-report-app/main/streamlit-test.parquet"
+@st.cache_data
+def load_data_from_gdrive():
+    creds_data = base64.b64decode(st.secrets["gdrive"]["token_pickle"])
+    creds = pickle.loads(creds_data)
+    service = build('drive', 'v3', credentials=creds)
+
+    file_id = st.secrets["gdrive"]["file_id"]
+    request = service.files().get_media(fileId=file_id)
+    fh = io.BytesIO()
+
+    from googleapiclient.http import MediaIoBaseDownload
+    downloader = MediaIoBaseDownload(fh, request)
+    done = False
+    while not done:
+        status, done = downloader.next_chunk()
+
+    fh.seek(0)
+    return pd.read_parquet(fh)
+
 
 # --- Load Data ---
 try:
@@ -47,15 +71,19 @@ try:
         else:
             df = pd.read_parquet(uploaded_file)
         st.sidebar.success("✅ Using uploaded file.")
+    elif "gdrive" in st.secrets:
+        df = load_data_from_gdrive()
+        st.sidebar.success("✅ Using secure Google Drive data.")
     else:
-        df = load_data_from_github(DEFAULT_DATA_URL)
-        st.sidebar.info("Using default GitHub data.")
+        st.error("🚨 No data source available. Please upload a file or configure Google Drive access.")
+        st.stop()
 
     df = preprocess_timestamps(df)
 
 except Exception as load_error:
     st.error("🚨 Failed to load data. Please try refreshing the app.")
     st.stop()
+
 
 # --- Sidebar View Switcher ---
 view = st.sidebar.selectbox("Select Dashboard Page", [
