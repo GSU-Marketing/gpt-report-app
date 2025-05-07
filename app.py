@@ -88,9 +88,9 @@ view = st.sidebar.selectbox("Select Dashboard Page", [
 
 # --- Filters with session state ---
 st.sidebar.subheader("🔎 Filter Data")
-programs = ["All"] + sorted(df['Applications Applied Program'].dropna().unique())
-statuses = ["All"] + sorted(df['Person Status'].dropna().unique())
-terms = ["All"] + sorted(df['Applications Applied Term'].dropna().unique())
+programs = ["All"] + sorted(df['Applications Applied Program'].dropna().astype(str).str.strip().loc[lambda x: (x != "") & (x.str.lower() != "nan")].unique())
+statuses = ["All"] + sorted(df['Person Status'].dropna().astype(str).str.strip().loc[lambda x: (x != "") & (x.str.lower() != "nan")].unique())
+terms = ["All"] + sorted(df['Applications Applied Term'].dropna().astype(str).str.strip().loc[lambda x: (x != "") & (x.str.lower() != "nan")].unique())
 
 if "Prospect" in statuses:
     statuses.remove("Prospect")
@@ -165,7 +165,7 @@ elif view == "Page 2: Geography & Program":
         filtered_df['Applications Applied Program']
         .dropna()
         .astype(str)
-        .loc[lambda x: x.str.strip() != ""]
+        .loc[lambda x: (x.str.strip() != "") & (x.str.lower() != "nan")]
         .value_counts()
         .head(10)
         .reset_index()
@@ -198,6 +198,7 @@ elif view == "Page 3: Engagement & Traffic":
 
     if "Ping UTM Source" in filtered_df.columns:
         traffic_df = filtered_df[filtered_df["Ping UTM Source"].notna()]
+        traffic_df = traffic_df[traffic_df["Ping UTM Source"].astype(str).str.strip().str.lower() != "nan"]
         traffic_df = traffic_df[traffic_df["Ping UTM Source"].astype(str).str.strip() != ""]
         if not traffic_df.empty:
             fig = px.pie(traffic_df, names="Ping UTM Source", title="Traffic Sources (UTM Source)")
@@ -207,6 +208,7 @@ elif view == "Page 3: Engagement & Traffic":
 
     if "Ping UTM Medium" in filtered_df.columns:
         medium_df = filtered_df[filtered_df["Ping UTM Medium"].notna()]
+        medium_df = medium_df[medium_df["Ping UTM Medium"].astype(str).str.strip().str.lower() != "nan"]
         medium_df = medium_df[medium_df["Ping UTM Medium"].astype(str).str.strip() != ""]
         if not medium_df.empty:
             medium_counts = medium_df["Ping UTM Medium"].value_counts().reset_index()
@@ -219,6 +221,7 @@ elif view == "Page 3: Engagement & Traffic":
 
     if "Ping UTM Campaign" in filtered_df.columns:
         campaign_df = filtered_df[filtered_df["Ping UTM Campaign"].notna()]
+        campaign_df = campaign_df[campaign_df["Ping UTM Campaign"].astype(str).str.strip().str.lower() != "nan"]
         campaign_df = campaign_df[campaign_df["Ping UTM Campaign"].astype(str).str.strip() != ""]
         if not campaign_df.empty:
             campaign_counts = campaign_df["Ping UTM Campaign"].value_counts().reset_index()
@@ -237,6 +240,7 @@ elif view == "Page 3: Engagement & Traffic":
 
     if "Applications Created Date" in filtered_df.columns:
         created_counts = filtered_df.dropna(subset=["Applications Created Date"])
+        created_counts = created_counts[created_counts["Applications Created Date"].astype(str).str.lower() != "nan"]
         if not created_counts.empty:
             fig = px.histogram(created_counts, x="Applications Created Date",
                                title="Applications Created Over Time",
@@ -245,6 +249,7 @@ elif view == "Page 3: Engagement & Traffic":
 
     if "Applications Submitted Date" in filtered_df.columns:
         submitted_counts = filtered_df.dropna(subset=["Applications Submitted Date"])
+        submitted_counts = submitted_counts[submitted_counts["Applications Submitted Date"].astype(str).str.lower() != "nan"]
         if not submitted_counts.empty:
             fig = px.histogram(submitted_counts, x="Applications Submitted Date",
                                title="Applications Submitted Over Time",
