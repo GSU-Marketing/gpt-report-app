@@ -162,13 +162,16 @@ elif view == "Page 2: Geography & Program":
     st.subheader("\U0001F30D Geography & Program Breakdown")
 
     top_programs = (
-        filtered_df[filtered_df['Applications Applied Program'].notna()]
-        ['Applications Applied Program']
-        .value_counts()
-        .head(10)
-        .reset_index()
-    )
-    top_programs.columns = ['Program', 'Count']
+    filtered_df['Applications Applied Program']
+    .dropna()
+    .astype(str)
+    .loc[lambda x: x.str.strip() != ""]  # remove empty or space-only strings
+    .value_counts()
+    .head(10)
+    .reset_index()
+)
+top_programs.columns = ['Program', 'Count']
+
     top_programs['Program'] = top_programs['Program'].astype(str)
 
     fig = px.bar(top_programs, x='Count', y='Program', orientation='h', title="Top Applied Programs",
@@ -196,12 +199,15 @@ elif view == "Page 3: Engagement & Traffic":
     st.subheader("\U0001F4C8 Engagement & Traffic Sources")
 
     if "Ping UTM Source" in filtered_df.columns:
-        traffic_df = filtered_df[filtered_df["Ping UTM Source"].notna()]
-        if not traffic_df.empty:
-            fig = px.pie(traffic_df, names="Ping UTM Source", title="Traffic Sources (UTM Source)")
-            st.plotly_chart(fig, config={'displayModeBar': False})
-        else:
-            st.info("\u2139\ufe0f No UTM Source data to display.")
+    traffic_df = filtered_df[filtered_df["Ping UTM Source"].notna()]
+    traffic_df = traffic_df[traffic_df["Ping UTM Source"].astype(str).str.strip() != ""]  # remove blank strings
+
+    if not traffic_df.empty:
+        fig = px.pie(traffic_df, names="Ping UTM Source", title="Traffic Sources (UTM Source)")
+        st.plotly_chart(fig, config={'displayModeBar': False})
+    else:
+        st.info("ℹ️ No UTM Source data to display.")
+
 
     if "Ping UTM Medium" in filtered_df.columns:
         medium_df = filtered_df[filtered_df["Ping UTM Medium"].notna()]
