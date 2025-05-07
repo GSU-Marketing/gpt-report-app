@@ -160,7 +160,7 @@ if view == "Page 1: Funnel Overview":
 
 
 # --- PAGE 2: Geography & Program ---
-elif view == "Page 2: Geography & Program":
+elif view == "Page 2: Program & Registration Hours":
     st.subheader("🌍 Geography & Program Breakdown")
 
     top_programs = (
@@ -195,7 +195,7 @@ elif view == "Page 2: Geography & Program":
     st.plotly_chart(fig, config={'displayModeBar': False})
 
 # --- PAGE 3: Engagement & Traffic ---
-elif view == "Page 3: Engagement & Traffic":
+elif view == "Page 3: Engagement & Channels":
     st.subheader("📈 Engagement & Traffic Sources")
 
     if "Ping UTM Source" in filtered_df.columns:
