@@ -18,9 +18,7 @@ st.image("GSU Logo Stacked.png", width=160)
 st.markdown("## GPT-Powered Graduate-Marketing Data Explorer", unsafe_allow_html=True)
 
 # --- Cached functions ---
-@st.cache_data
-def load_data_from_github(url):
-    return pd.read_parquet(url)
+
 
 @st.cache_data
 def preprocess_timestamps(df):
@@ -186,21 +184,21 @@ fig = px.bar(top_programs, x='Count', y='Program', orientation='h', title="Top A
 st.plotly_chart(fig, config={'displayModeBar': False})
 
     # Registration Hours by Term (replacement for modality)
-    reg_cols = [col for col in filtered_df.columns if "Registration Hours" in col]
-    reg_df = filtered_df[reg_cols].copy()
-    melted = reg_df.melt(var_name="Term", value_name="Hours").dropna()
+reg_cols = [col for col in filtered_df.columns if "Registration Hours" in col]
+reg_df = filtered_df[reg_cols].copy()
+melted = reg_df.melt(var_name="Term", value_name="Hours").dropna()
 
-    show_avg = st.sidebar.checkbox("Show Average Hours per Person", value=False)
-    if show_avg:
+show_avg = st.sidebar.checkbox("Show Average Hours per Person", value=False)
+if show_avg:
         avg_df = melted.groupby("Term")["Hours"].mean().reset_index()
         fig = px.bar(avg_df, x="Term", y="Hours", title="Average Registration Hours by Term",
                      color_discrete_sequence=gsu_colors)
-    else:
+else:
         sum_df = melted.groupby("Term")["Hours"].sum().reset_index()
         fig = px.bar(sum_df, x="Term", y="Hours", title="Total Registration Hours by Term",
                      color_discrete_sequence=gsu_colors)
 
-    st.plotly_chart(fig, config={'displayModeBar': False})
+st.plotly_chart(fig, config={'displayModeBar': False})
 
 # --- PAGE 3: Engagement & Traffic ---
 elif view == "Page 3: Engagement & Traffic":
