@@ -82,8 +82,8 @@ except Exception as load_error:
 # --- Sidebar View Switcher ---
 view = st.sidebar.selectbox("Select Dashboard Page", [
     "Page 1: Funnel Overview",
-    "Page 2: Geography & Program",
-    "Page 3: Engagement & Traffic"
+    "Page 2: Program & Registration Hours",
+    "Page 3: Engagement & Channels"
 ])
 
 # --- Filters with session state ---
@@ -169,7 +169,7 @@ elif view == "Page 2: Geography & Program":
         .astype(str)
         .loc[lambda x: (x.str.strip() != "") & (x.str.lower() != "nan")]
         .value_counts()
-        .head(10)
+        .head(20)
         .reset_index()
     )
     top_programs.columns = ['Program', 'Count']
