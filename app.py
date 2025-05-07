@@ -74,6 +74,8 @@ try:
     elif "gdrive" in st.secrets:
         df = load_data_from_gdrive()
         st.sidebar.success("✅ Using secure Google Drive data.")
+        st.sidebar.caption("🔒 Data Source: Private Google Drive")
+
     else:
         st.error("🚨 No data source available. Please upload a file or configure Google Drive access.")
         st.stop()
@@ -169,7 +171,14 @@ if view == "Page 1: Funnel Overview":
 elif view == "Page 2: Geography & Program":
     st.subheader("🌍 Geography & Program Breakdown")
 
-    top_programs = filtered_df['Applications Applied Program'].value_counts().head(10).reset_index()
+    top_programs = (
+    filtered_df['Applications Applied Program']
+    .dropna()  # 👈 remove NaN rows
+    .value_counts()
+    .head(10)
+    .reset_index()
+)
+
     top_programs.columns = ['Program', 'Count']
     fig = px.bar(top_programs, x='Count', y='Program', orientation='h', title="Top Applied Programs",
                  color_discrete_sequence=gsu_colors)
