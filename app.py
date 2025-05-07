@@ -159,20 +159,18 @@ if view == "Page 1: Funnel Overview":
 
 # --- PAGE 2: Geography & Program ---
 elif view == "Page 2: Geography & Program":
-    st.subheader("\U0001F30D Geography & Program Breakdown")
+    st.subheader("🌍 Geography & Program Breakdown")
 
     top_programs = (
-    filtered_df['Applications Applied Program']
-    .dropna()
-    .astype(str)
-    .loc[lambda x: x.str.strip() != ""]  # remove empty or space-only strings
-    .value_counts()
-    .head(10)
-    .reset_index()
-)
-top_programs.columns = ['Program', 'Count']
-
-    top_programs['Program'] = top_programs['Program'].astype(str)
+        filtered_df['Applications Applied Program']
+        .dropna()
+        .astype(str)
+        .loc[lambda x: x.str.strip() != ""]
+        .value_counts()
+        .head(10)
+        .reset_index()
+    )
+    top_programs.columns = ['Program', 'Count']
 
     fig = px.bar(top_programs, x='Count', y='Program', orientation='h', title="Top Applied Programs",
                  color_discrete_sequence=gsu_colors)
@@ -196,21 +194,20 @@ top_programs.columns = ['Program', 'Count']
 
 # --- PAGE 3: Engagement & Traffic ---
 elif view == "Page 3: Engagement & Traffic":
-    st.subheader("\U0001F4C8 Engagement & Traffic Sources")
+    st.subheader("📈 Engagement & Traffic Sources")
 
     if "Ping UTM Source" in filtered_df.columns:
-    traffic_df = filtered_df[filtered_df["Ping UTM Source"].notna()]
-    traffic_df = traffic_df[traffic_df["Ping UTM Source"].astype(str).str.strip() != ""]  # remove blank strings
-
-    if not traffic_df.empty:
-        fig = px.pie(traffic_df, names="Ping UTM Source", title="Traffic Sources (UTM Source)")
-        st.plotly_chart(fig, config={'displayModeBar': False})
-    else:
-        st.info("ℹ️ No UTM Source data to display.")
-
+        traffic_df = filtered_df[filtered_df["Ping UTM Source"].notna()]
+        traffic_df = traffic_df[traffic_df["Ping UTM Source"].astype(str).str.strip() != ""]
+        if not traffic_df.empty:
+            fig = px.pie(traffic_df, names="Ping UTM Source", title="Traffic Sources (UTM Source)")
+            st.plotly_chart(fig, config={'displayModeBar': False})
+        else:
+            st.info("ℹ️ No UTM Source data to display.")
 
     if "Ping UTM Medium" in filtered_df.columns:
         medium_df = filtered_df[filtered_df["Ping UTM Medium"].notna()]
+        medium_df = medium_df[medium_df["Ping UTM Medium"].astype(str).str.strip() != ""]
         if not medium_df.empty:
             medium_counts = medium_df["Ping UTM Medium"].value_counts().reset_index()
             medium_counts.columns = ["UTM Medium", "Count"]
@@ -218,10 +215,11 @@ elif view == "Page 3: Engagement & Traffic":
                          color_discrete_sequence=gsu_colors)
             st.plotly_chart(fig, config={'displayModeBar': False})
         else:
-            st.info("\u2139\ufe0f No UTM Medium data to display.")
+            st.info("ℹ️ No UTM Medium data to display.")
 
     if "Ping UTM Campaign" in filtered_df.columns:
         campaign_df = filtered_df[filtered_df["Ping UTM Campaign"].notna()]
+        campaign_df = campaign_df[campaign_df["Ping UTM Campaign"].astype(str).str.strip() != ""]
         if not campaign_df.empty:
             campaign_counts = campaign_df["Ping UTM Campaign"].value_counts().reset_index()
             campaign_counts.columns = ["Campaign", "Count"]
@@ -229,7 +227,7 @@ elif view == "Page 3: Engagement & Traffic":
                          color_discrete_sequence=gsu_colors)
             st.plotly_chart(fig, config={'displayModeBar': False})
         else:
-            st.info("\u2139\ufe0f No UTM Campaign data to display.")
+            st.info("ℹ️ No UTM Campaign data to display.")
 
     if "Ping Timestamp" in filtered_df.columns:
         filtered_df["Hour"] = pd.to_datetime(filtered_df["Ping Timestamp"], errors='coerce').dt.hour
