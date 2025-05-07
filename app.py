@@ -122,10 +122,7 @@ for col in filtered_df.columns:
         filtered_df[col] = filtered_df[col].astype(str).str.strip()
         filtered_df = filtered_df[filtered_df[col].str.lower() != "nan"]
 
-# GPT INTERACTION AND VISUALIZATION PAGES FOLLOW THIS POINT ---
-
-# (You can now continue here with visualizations for Pages 1, 2, and 3.)
-
+# The rest of the visualization logic will now follow here (Page 1–3, summaries, AI) ...
 
 
 # You can now continue each page's visualization logic below...
