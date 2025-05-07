@@ -201,9 +201,8 @@ else:
 st.plotly_chart(fig, config={'displayModeBar': False})
 
 # --- PAGE 3: Engagement & Traffic ---
-
 elif view == "Page 3: Engagement & Traffic":
-    st.subheader("📈 Engagement & Traffic Sources")
+    st.subheader("\U0001F4C8 Engagement & Traffic Sources")
 
     if "Ping UTM Source" in filtered_df.columns:
         traffic_df = filtered_df[filtered_df["Ping UTM Source"].notna()]
@@ -211,7 +210,7 @@ elif view == "Page 3: Engagement & Traffic":
             fig = px.pie(traffic_df, names="Ping UTM Source", title="Traffic Sources (UTM Source)")
             st.plotly_chart(fig, config={'displayModeBar': False})
         else:
-            st.info("ℹ️ No UTM Source data to display.")
+            st.info("\u2139\ufe0f No UTM Source data to display.")
 
     if "Ping UTM Medium" in filtered_df.columns:
         medium_df = filtered_df[filtered_df["Ping UTM Medium"].notna()]
@@ -222,7 +221,7 @@ elif view == "Page 3: Engagement & Traffic":
                          color_discrete_sequence=gsu_colors)
             st.plotly_chart(fig, config={'displayModeBar': False})
         else:
-            st.info("ℹ️ No UTM Medium data to display.")
+            st.info("\u2139\ufe0f No UTM Medium data to display.")
 
     if "Ping UTM Campaign" in filtered_df.columns:
         campaign_df = filtered_df[filtered_df["Ping UTM Campaign"].notna()]
@@ -233,7 +232,7 @@ elif view == "Page 3: Engagement & Traffic":
                          color_discrete_sequence=gsu_colors)
             st.plotly_chart(fig, config={'displayModeBar': False})
         else:
-            st.info("ℹ️ No UTM Campaign data to display.")
+            st.info("\u2139\ufe0f No UTM Campaign data to display.")
 
     if "Ping Timestamp" in filtered_df.columns:
         filtered_df["Hour"] = pd.to_datetime(filtered_df["Ping Timestamp"], errors='coerce').dt.hour
