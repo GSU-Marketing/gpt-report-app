@@ -99,9 +99,10 @@ except Exception as load_error:
 # --- Sidebar View Switcher ---
 view = st.sidebar.selectbox("Select Dashboard Page", [
     "Page 1: Funnel Overview",
-    "Page 2: Geography & Program",
-    "Page 3: Engagement & Traffic"
+    "Page 2: Programs & Registration Hours",
+    "Page 3: Engagement & Channels"
 ])
+
 
 # --- Filters with session state ---
 st.sidebar.subheader("🔎 Filter Data")
@@ -218,7 +219,7 @@ if view == "Page 1: Funnel Overview":
 
 
 # --- PAGE 2: Geography & Program ---
-elif view == "Page 2: Geography & Program":
+elif view == "Page 2: Programs & Registration Hours":
     st.subheader("🌍 Geography & Program Breakdown")
 
     top_programs = (
@@ -267,7 +268,7 @@ elif view == "Page 2: Geography & Program":
 
 
 # --- PAGE 3: Engagement & Traffic ---
-elif view == "Page 3: Engagement & Traffic":
+elif view == "Page 3: Engagement & Channels":
     st.subheader("📈 Engagement & Traffic Sources")
 
     if "Ping UTM Source" in filtered_df.columns:
