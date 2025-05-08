@@ -88,9 +88,9 @@ view = st.sidebar.selectbox("Select Dashboard Page", [
 
 # --- Filters with session state ---
 st.sidebar.subheader("🔎 Filter Data")
-programs = ["All"] + sorted(df['Applications Applied Program'].dropna().unique())
-statuses = ["All"] + sorted(df['Person Status'].dropna().unique())
-terms = ["All"] + sorted(df['Applications Applied Term'].dropna().unique())
+programs = ["All"] + sorted(df['Applications Applied Program'].dropna().astype(str).str.strip().loc[lambda x: (x != "") & (x.str.lower() != "nan")].unique())
+statuses = ["All"] + sorted(df['Person Status'].dropna().astype(str).str.strip().loc[lambda x: (x != "") & (x.str.lower() != "nan")].unique())
+terms = ["All"] + sorted(df['Applications Applied Term'].dropna().astype(str).str.strip().loc[lambda x: (x != "") & (x.str.lower() != "nan")].unique())
 
 if "Prospect" in statuses:
     statuses.remove("Prospect")
@@ -114,30 +114,6 @@ if selected_program == "All" and selected_status == "All" and selected_term == "
     filtered_df = df.copy()
 else:
     filtered_df = get_filtered_data(df, selected_program, selected_status, selected_term)
-
-# --- Clean up target columns only ---
-columns_to_clean = [
-    "Applications Applied Program",
-    "Person Status",
-    "Applications Applied Term",
-    "Ping UTM Source",
-    "Ping UTM Medium",
-    "Ping UTM Campaign",
-    "Person Inquiry Term",
-    "Applications Created Date",
-    "Applications Submitted Date"
-]
-
-for col in columns_to_clean:
-    if col in filtered_df.columns:
-        filtered_df[col] = filtered_df[col].astype(str).str.strip()
-        filtered_df = filtered_df[(filtered_df[col].str.lower() != "nan") & (filtered_df[col] != "")]
-
-# Proceed with visualizations...
-
-
-# You can now continue each page's visualization logic below...
-
 
 # --- PAGE 1: Funnel Overview ---
 if view == "Page 1: Funnel Overview":
@@ -176,15 +152,13 @@ if view == "Page 1: Funnel Overview":
     df_term = filtered_df.copy()
     df_term["Term"] = df_term["Applications Applied Term"].combine_first(df_term["Person Inquiry Term"])
     df_term = df_term[df_term["Person Status"].isin(["Inquiry", "Applicant", "Enrolled"])]
-    df_term = df_term[df_term["Term"].notna() & (df_term["Term"].astype(str).str.strip() != "") & (df_term["Term"].astype(str).str.lower() != "nan")]
     term_counts = df_term.groupby(["Term", "Person Status"]).size().reset_index(name="Count")
     fig = px.bar(term_counts, x="Term", y="Count", color="Person Status", barmode="group",
                  title="Leads by Term", color_discrete_sequence=gsu_colors)
     st.plotly_chart(fig, use_container_width=stacked, config={'displayModeBar': False})
 
-
 # --- PAGE 2: Geography & Program ---
-elif view == "Page 2: Program & Registration Hours":
+elif view == "Page 2: Geography & Program":
     st.subheader("🌍 Geography & Program Breakdown")
 
     top_programs = (
@@ -193,7 +167,7 @@ elif view == "Page 2: Program & Registration Hours":
         .astype(str)
         .loc[lambda x: (x.str.strip() != "") & (x.str.lower() != "nan")]
         .value_counts()
-        .head(20)
+        .head(10)
         .reset_index()
     )
     top_programs.columns = ['Program', 'Count']
@@ -219,7 +193,7 @@ elif view == "Page 2: Program & Registration Hours":
     st.plotly_chart(fig, config={'displayModeBar': False})
 
 # --- PAGE 3: Engagement & Traffic ---
-elif view == "Page 3: Engagement & Channels":
+elif view == "Page 3: Engagement & Traffic":
     st.subheader("📈 Engagement & Traffic Sources")
 
     if "Ping UTM Source" in filtered_df.columns:
