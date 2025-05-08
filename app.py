@@ -65,10 +65,9 @@ def ask_gpt(prompt: str, system_prompt: str, temperature: float = 0.4):
         )
         return response.choices[0].message.content
     except Exception as e:
-        st.warning("⚠️ GPT error: API limit reached or connection issue.")
-        st.exception(e)
-        return None
-
+        st.warning("⚠️ GPT error: API limit reached or input is too large.")
+        st.info("ℹ️ Details have been logged for review.")
+    return None
 
 # --- Load Data ---
 try:
@@ -207,7 +206,9 @@ if view == "Page 1: Funnel Overview":
     if st.sidebar.checkbox("🧠 Show Page Summary", value=True):
         st.markdown("### 🧠 Summary")
         with st.spinner("Summarizing Page 1..."):
-            page_sample = filtered_df.head(300).to_csv(index=False)
+            max_rows = 1000 // max(len(filtered_df.columns), 1)
+            page_sample = filtered_df.head(max_rows).to_csv(index=False)
+
             summary = ask_gpt(
                 prompt=f"Summarize this data for a funnel analysis:\n\n{page_sample}",
                 system_prompt="You are a data analyst providing a brief summary of the data."
@@ -255,7 +256,8 @@ elif view == "Page 2: Geography & Program":
         st.markdown("### 🧠 Summary")
         with st.spinner("Summarizing Page 2..."):
 
-            page_sample = filtered_df.head(300).to_csv(index=False)
+            max_rows = 1000 // max(len(filtered_df.columns), 1)
+            page_sample = filtered_df.head(max_rows).to_csv(index=False)
             summary = ask_gpt(
                 prompt=f"Summarize this data with attention to geographic and program details:\n\n{page_sample}",
                 system_prompt="You are a data analyst summarizing geographic and program-related patterns."
@@ -333,7 +335,8 @@ elif view == "Page 3: Engagement & Traffic":
         st.markdown("### 🧠 Summary")
         with st.spinner("Summarizing Page 3..."):
 
-            page_sample = filtered_df.head(300).to_csv(index=False)
+            max_rows = 1000 // max(len(filtered_df.columns), 1)
+            page_sample = filtered_df.head(max_rows).to_csv(index=False)
             summary = ask_gpt(
                 prompt=f"Summarize this marketing traffic data:\n\n{page_sample}",
                 system_prompt="You are a data analyst summarizing UTM and engagement metrics."
