@@ -82,15 +82,15 @@ except Exception as load_error:
 # --- Sidebar View Switcher ---
 view = st.sidebar.selectbox("Select Dashboard Page", [
     "Page 1: Funnel Overview",
-    "Page 2: Program & Registration Hours",
-    "Page 3: Engagement & Channels"
+    "Page 2: Geography & Program",
+    "Page 3: Engagement & Traffic"
 ])
 
 # --- Filters with session state ---
 st.sidebar.subheader("🔎 Filter Data")
-programs = ["All"] + sorted(df['Applications Applied Program'].dropna().astype(str).str.strip().loc[lambda x: (x != "") & (x.str.lower() != "nan")].unique())
-statuses = ["All"] + sorted(df['Person Status'].dropna().astype(str).str.strip().loc[lambda x: (x != "") & (x.str.lower() != "nan")].unique())
-terms = ["All"] + sorted(df['Applications Applied Term'].dropna().astype(str).str.strip().loc[lambda x: (x != "") & (x.str.lower() != "nan")].unique())
+programs = ["All"] + sorted(df['Applications Applied Program'].dropna().unique())
+statuses = ["All"] + sorted(df['Person Status'].dropna().unique())
+terms = ["All"] + sorted(df['Applications Applied Term'].dropna().unique())
 
 if "Prospect" in statuses:
     statuses.remove("Prospect")
@@ -115,14 +115,25 @@ if selected_program == "All" and selected_status == "All" and selected_term == "
 else:
     filtered_df = get_filtered_data(df, selected_program, selected_status, selected_term)
 
-# --- Clean up columns that are often dirty ---
-filtered_df = filtered_df.copy()
-for col in filtered_df.columns:
-    if filtered_df[col].dtype == object:
-        filtered_df[col] = filtered_df[col].astype(str).str.strip()
-        filtered_df = filtered_df[filtered_df[col].str.lower() != "nan"]
+# --- Clean up target columns only ---
+columns_to_clean = [
+    "Applications Applied Program",
+    "Person Status",
+    "Applications Applied Term",
+    "Ping UTM Source",
+    "Ping UTM Medium",
+    "Ping UTM Campaign",
+    "Person Inquiry Term",
+    "Applications Created Date",
+    "Applications Submitted Date"
+]
 
-# The rest of the visualization logic will now follow here (Page 1–3, summaries, AI) ...
+for col in columns_to_clean:
+    if col in filtered_df.columns:
+        filtered_df[col] = filtered_df[col].astype(str).str.strip()
+        filtered_df = filtered_df[(filtered_df[col].str.lower() != "nan") & (filtered_df[col] != "")]
+
+# Proceed with visualizations...
 
 
 # You can now continue each page's visualization logic below...
