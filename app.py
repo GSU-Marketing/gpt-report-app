@@ -52,6 +52,24 @@ def load_data_from_gdrive():
     fh.seek(0)
     return pd.read_parquet(fh)
 
+# --- GPT Helper Function ---
+def ask_gpt(prompt: str, system_prompt: str, temperature: float = 0.4):
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=temperature
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        st.warning("⚠️ GPT error: API limit reached or connection issue.")
+        st.exception(e)
+        return None
+
+
 # --- Load Data ---
 try:
     st.sidebar.subheader("📂 Upload or Use Default")
@@ -115,6 +133,35 @@ if selected_program == "All" and selected_status == "All" and selected_term == "
 else:
     filtered_df = get_filtered_data(df, selected_program, selected_status, selected_term)
 
+# --- GPT Sidebar Chat + Summary ---
+st.sidebar.markdown("---")
+st.sidebar.subheader("💬 Ask a question about your data")
+user_question = st.sidebar.text_area("What would you like to know?", placeholder="e.g. What is the most common program?", height=100)
+
+if user_question:
+    with st.spinner("Asking AI..."):
+        data_sample = filtered_df.head(300).to_csv(index=False)
+        answer = ask_gpt(
+            prompt=f"Here is the data:\n\n{data_sample}\n\nQuestion: {user_question}",
+            system_prompt="You are a data analyst assistant that answers questions about CSV-style data."
+        )
+        if answer:
+            st.sidebar.success("✅ Answer ready")
+            st.sidebar.write(answer)
+
+# Optional summary toggle
+if st.sidebar.checkbox("🧠 Show automatic summary", value=False):
+    with st.spinner("Generating summary..."):
+        summary_sample = filtered_df.head(300).to_csv(index=False)
+        summary = ask_gpt(
+            prompt=summary_sample,
+            system_prompt="You are a data analyst. Summarize the following dataset."
+        )
+        if summary:
+            st.sidebar.markdown("### 📊 Data Summary")
+            st.sidebar.write(summary)
+
+
 # --- PAGE 1: Funnel Overview ---
 if view == "Page 1: Funnel Overview":
     st.subheader("🎯 Lead Funnel Overview")
@@ -157,6 +204,18 @@ if view == "Page 1: Funnel Overview":
                  title="Leads by Term", color_discrete_sequence=gsu_colors)
     st.plotly_chart(fig, use_container_width=stacked, config={'displayModeBar': False})
 
+    if st.sidebar.checkbox("🧠 Show Page Summary", value=True):
+        st.markdown("### 🧠 Summary")
+        with st.spinner("Summarizing Page 1..."):
+            page_sample = filtered_df.head(300).to_csv(index=False)
+            summary = ask_gpt(
+                prompt=f"Summarize this data for a funnel analysis:\n\n{page_sample}",
+                system_prompt="You are a data analyst providing a brief summary of the data."
+            )
+            if summary:
+                st.info(summary)
+
+
 # --- PAGE 2: Geography & Program ---
 elif view == "Page 2: Geography & Program":
     st.subheader("🌍 Geography & Program Breakdown")
@@ -191,6 +250,19 @@ elif view == "Page 2: Geography & Program":
                      color_discrete_sequence=gsu_colors)
 
     st.plotly_chart(fig, config={'displayModeBar': False})
+
+    if st.sidebar.checkbox("🧠 Show Page Summary", value=True):
+        st.markdown("### 🧠 Summary")
+        with st.spinner("Summarizing Page 2..."):
+
+            page_sample = filtered_df.head(300).to_csv(index=False)
+            summary = ask_gpt(
+                prompt=f"Summarize this data with attention to geographic and program details:\n\n{page_sample}",
+                system_prompt="You are a data analyst summarizing geographic and program-related patterns."
+            )
+            if summary:
+                st.info(summary)
+
 
 # --- PAGE 3: Engagement & Traffic ---
 elif view == "Page 3: Engagement & Traffic":
@@ -255,3 +327,16 @@ elif view == "Page 3: Engagement & Traffic":
                                title="Applications Submitted Over Time",
                                color_discrete_sequence=gsu_colors)
             st.plotly_chart(fig, config={'displayModeBar': False})
+
+
+    if st.sidebar.checkbox("🧠 Show Page Summary", value=True):
+        st.markdown("### 🧠 Summary")
+        with st.spinner("Summarizing Page 3..."):
+
+            page_sample = filtered_df.head(300).to_csv(index=False)
+            summary = ask_gpt(
+                prompt=f"Summarize this marketing traffic data:\n\n{page_sample}",
+                system_prompt="You are a data analyst summarizing UTM and engagement metrics."
+            )
+            if summary:
+                st.info(summary)
