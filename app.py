@@ -7,6 +7,37 @@ from google.oauth2.credentials import Credentials
 import base64
 import pickle
 import io
+import gspread
+import json
+from oauth2client.service_account import ServiceAccountCredentials
+
+@st.cache_resource
+def get_gsheet_client():
+    creds_dict = json.loads(st.secrets["gcp"])
+    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+    client = gspread.authorize(creds)
+    return client
+
+def log_visitor_to_sheet(ip, page, session_id, prompt=None):
+    client = get_gsheet_client()
+    sheet = client.open("Visitor Logs").sheet1
+    now = pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S")
+    sheet.append_row([ip, now, page, session_id, prompt or ""])
+
+from streamlit_javascript import st_javascript
+
+ip = st_javascript("await fetch('https://api.ipify.org?format=json').then(r => r.json()).then(d => d.ip)")
+
+import uuid
+
+# Generate a session_id only once per session
+if "session_id" not in st.session_state:
+    st.session_state.session_id = str(uuid.uuid4())
+
+
+
+
 
 # --- Setup ---
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
@@ -32,6 +63,12 @@ def get_filtered_data(df, program, status, term):
     if term != "All":
         df = df[df['Applications Applied Term'] == term]
     return df
+
+def summarize_funnel_metrics(df):
+    stages = ["Inquiry", "Applicant", "Enrolled"]
+    counts = {stage: len(df[df["Person Status"] == stage]) for stage in stages}
+    return "\n".join([f"{stage}: {count}" for stage, count in counts.items()])
+
 
 @st.cache_data
 def load_data_from_gdrive():
@@ -102,6 +139,13 @@ view = st.sidebar.selectbox("Select Dashboard Page", [
     "Page 2: Programs & Registration Hours",
     "Page 3: Engagement & Channels"
 ])
+
+if ip and "visitor_logged" not in st.session_state:
+    try:
+        log_visitor_to_sheet(ip, page=view, session_id=st.session_state.session_id)
+        st.session_state.visitor_logged = True
+    except Exception as e:
+        st.warning("⚠️ Initial visitor log failed.")
 
 
 # --- Filters with session state ---
@@ -182,10 +226,18 @@ if user_question:
             prompt=f"Here is the data:\n\n{data_sample}\n\nQuestion: {user_question}",
             system_prompt="You are a data analyst assistant that answers questions about CSV-style data."
         )
+
         if answer:
             st.sidebar.success("✅ Answer ready")
             st.sidebar.write(answer)
+            try:
+                log_visitor_to_sheet(ip, page=view, session_id=st.session_state.session_id, prompt=user_question)
+            except Exception as e:
+                st.warning("⚠️ Visitor GPT log failed.")
 
+ 
+
+    
 # Optional summary toggle
 if st.sidebar.checkbox("🧠 Show automatic summary", value=False):
     with st.spinner("Generating summary..."):
@@ -197,6 +249,7 @@ if st.sidebar.checkbox("🧠 Show automatic summary", value=False):
         if summary:
             st.sidebar.markdown("### 📊 Data Summary")
             st.sidebar.write(summary)
+
 
 
 # --- PAGE 1: Funnel Overview ---
@@ -251,12 +304,13 @@ if view == "Page 1: Funnel Overview":
         st.markdown("### 🧠 Summary")
         with st.spinner("Summarizing Page 1..."):
             max_rows = 1000 // max(len(filtered_df.columns), 1)
-            page_sample = filtered_df.head(max_rows).to_csv(index=False)
-
+            
+            summary_input = summarize_funnel_metrics(filtered_df)
             summary = ask_gpt(
-                prompt=f"Summarize this data for a funnel analysis:\n\n{page_sample}",
-                system_prompt="You are a data analyst providing a brief summary of the data."
+            prompt=f"Provide a funnel drop-off summary using this data:\n\n{summary_input}",
+            system_prompt="You are a data analyst providing a brief summary of the data."
             )
+
             if summary:
                 st.info(summary)
 
