@@ -133,6 +133,38 @@ if selected_program == "All" and selected_status == "All" and selected_term == "
 else:
     filtered_df = get_filtered_data(df, selected_program, selected_status, selected_term)
 
+
+# --- Apply Date Range Filter ---
+from datetime import datetime
+
+min_date = pd.to_datetime("2022-07-01")
+max_date = pd.to_datetime("2025-12-31")
+
+ping_dates = pd.to_datetime(filtered_df["Ping Timestamp"], errors="coerce")
+valid_dates = ping_dates.dropna()
+data_min = valid_dates.min()
+data_max = valid_dates.max()
+
+start_date = max(min_date, data_min)
+end_date = min(max_date, data_max)
+
+selected_dates = st.sidebar.date_input(
+    "📅 Date Range (Ping Timestamp)",
+    (start_date.date(), end_date.date()),
+    min_value=min_date.date(),
+    max_value=max_date.date()
+)
+
+if isinstance(selected_dates, tuple) and len(selected_dates) == 2:
+    start, end = pd.to_datetime(selected_dates[0]), pd.to_datetime(selected_dates[1])
+    st.sidebar.caption(f"📆 Showing data from **{start.date()}** to **{end.date()}**")
+
+    filtered_df = filtered_df[
+        (pd.to_datetime(filtered_df["Ping Timestamp"], errors="coerce") >= start) &
+        (pd.to_datetime(filtered_df["Ping Timestamp"], errors="coerce") <= end)
+    ]
+
+
 # --- GPT Sidebar Chat + Summary ---
 st.sidebar.markdown("---")
 st.sidebar.subheader("💬 Ask a question about your data")
