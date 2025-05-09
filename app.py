@@ -164,7 +164,8 @@ if st.sidebar.checkbox("🧠 Show automatic summary", value=False):
 
 # --- PAGE 1: Funnel Overview ---
 if view == "Page 1: Funnel Overview":
-    st.subheader("🎯 Lead Funnel Overview")
+    st.subheader("🪣 Funnel Overview")
+
     inquiries = len(filtered_df[filtered_df['Person Status'] == 'Inquiry'])
     applicants = len(filtered_df[filtered_df['Person Status'] == 'Applicant'])
     enrolled = len(filtered_df[filtered_df['Person Status'] == 'Enrolled'])
@@ -199,6 +200,7 @@ if view == "Page 1: Funnel Overview":
     df_term = filtered_df.copy()
     df_term["Term"] = df_term["Applications Applied Term"].combine_first(df_term["Person Inquiry Term"])
     df_term = df_term[df_term["Person Status"].isin(["Inquiry", "Applicant", "Enrolled"])]
+    df_term = df_term.dropna(subset=["Term"])  # <- this removes the rows causing NaN in chart
     term_counts = df_term.groupby(["Term", "Person Status"]).size().reset_index(name="Count")
     fig = px.bar(term_counts, x="Term", y="Count", color="Person Status", barmode="group",
                  title="Leads by Term", color_discrete_sequence=gsu_colors)
@@ -220,7 +222,8 @@ if view == "Page 1: Funnel Overview":
 
 # --- PAGE 2: Geography & Program ---
 elif view == "Page 2: Programs & Registration Hours":
-    st.subheader("🌍 Geography & Program Breakdown")
+    st.subheader("📊 Programs & Registration Hours")
+
 
     top_programs = (
         filtered_df['Applications Applied Program']
@@ -269,7 +272,7 @@ elif view == "Page 2: Programs & Registration Hours":
 
 # --- PAGE 3: Engagement & Traffic ---
 elif view == "Page 3: Engagement & Channels":
-    st.subheader("📈 Engagement & Traffic Sources")
+    st.subheader("📡 Engagement & Channels")
 
     if "Ping UTM Source" in filtered_df.columns:
         traffic_df = filtered_df[filtered_df["Ping UTM Source"].notna()]
