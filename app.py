@@ -200,7 +200,11 @@ if view == "Page 1: Funnel Overview":
     df_term = filtered_df.copy()
     df_term["Term"] = df_term["Applications Applied Term"].combine_first(df_term["Person Inquiry Term"])
     df_term = df_term[df_term["Person Status"].isin(["Inquiry", "Applicant", "Enrolled"])]
-    df_term = df_term.dropna(subset=["Term"])  # <- this removes the rows causing NaN in chart
+
+    # Remove rows with missing, NaN, or blank Term values
+    df_term = df_term[df_term["Term"].notna()]
+    df_term = df_term[df_term["Term"].astype(str).str.strip().str.lower() != "nan"]
+    df_term = df_term[df_term["Term"].astype(str).str.strip() != ""]
     term_counts = df_term.groupby(["Term", "Person Status"]).size().reset_index(name="Count")
     fig = px.bar(term_counts, x="Term", y="Count", color="Person Status", barmode="group",
                  title="Leads by Term", color_discrete_sequence=gsu_colors)
