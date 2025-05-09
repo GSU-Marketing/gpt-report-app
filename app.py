@@ -143,7 +143,7 @@ view = st.sidebar.selectbox("Select Dashboard Page", [
 
 if ip and "visitor_logged" not in st.session_state:
 
-    try:
+try:
     log_visitor_to_sheet(ip, page=view, session_id=st.session_state.session_id)
     st.session_state.visitor_logged = True
 except Exception as e:
