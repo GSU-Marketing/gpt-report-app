@@ -461,7 +461,7 @@ elif view == "Page 4: Admin Dashboard":
 
     st.subheader("🔒 Admin Dashboard")
     admin_key = st.text_input("Enter Admin Access Key", type="password")
-    if admin_key != st.secrets["admin"]:
+    if admin_key != st.secrets["ADMIN_KEY"]:
         st.warning("Access denied.")
         st.stop()
 
