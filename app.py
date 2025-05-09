@@ -138,8 +138,10 @@ except Exception as load_error:
 view = st.sidebar.selectbox("Select Dashboard Page", [
     "Page 1: Funnel Overview",
     "Page 2: Programs & Registration Hours",
-    "Page 3: Engagement & Channels"
+    "Page 3: Engagement & Channels",
+    "Page 4: Admin Dashboard"
 ])
+
 
 if ip and "visitor_logged" not in st.session_state:
 
@@ -148,6 +150,7 @@ if ip and "visitor_logged" not in st.session_state:
         st.session_state.visitor_logged = True
     except Exception as e:
         st.warning(f"⚠️ Initial visitor log failed: {e}")
+
 
 
 # --- Filters with session state ---
@@ -444,3 +447,30 @@ elif view == "Page 3: Engagement & Channels":
             )
             if summary:
                 st.info(summary)
+
+
+
+# --- PAGE 4: Admin View ---
+elif view == "Page 4: Admin Dashboard":
+
+    def get_visitor_logs():
+        client = get_gsheet_client()
+        sheet = client.open("Visitor Logs").sheet1
+        records = sheet.get_all_records()
+        return pd.DataFrame(records)
+
+    st.subheader("🔒 Admin Dashboard")
+    admin_key = st.text_input("Enter Admin Access Key", type="password")
+    if admin_key != st.secrets["ADMIN_KEY"]:
+        st.warning("Access denied.")
+        st.stop()
+
+    st.success("Access granted. Welcome, Admin.")
+
+    try:
+        logs_df = get_visitor_logs()
+        st.dataframe(logs_df)
+        st.download_button("📥 Download Logs CSV", logs_df.to_csv(index=False), "visitor_logs.csv")
+    except Exception as e:
+        st.error("❌ Failed to load visitor logs.")
+        st.exception(e)
