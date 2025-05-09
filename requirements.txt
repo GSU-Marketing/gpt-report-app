@@ -12,4 +12,4 @@ google-auth-oauthlib
 google-api-python-client
 gspread
 streamlit-javascript
-ServiceAccountCredentials
+oauth2client
