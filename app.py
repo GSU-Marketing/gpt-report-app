@@ -140,6 +140,9 @@ from datetime import datetime
 min_date = pd.to_datetime("2022-07-01")
 max_date = pd.to_datetime("2025-12-31")
 
+assert pd.api.types.is_datetime64_any_dtype(filtered_df["Ping Timestamp"])
+
+
 ping_dates = pd.to_datetime(filtered_df["Ping Timestamp"], errors="coerce")
 valid_dates = ping_dates.dropna()
 data_min = valid_dates.min()
@@ -172,7 +175,9 @@ user_question = st.sidebar.text_area("What would you like to know?", placeholder
 
 if user_question:
     with st.spinner("Asking AI..."):
-        data_sample = filtered_df.head(300).to_csv(index=False)
+        cols_to_include = ["Person Status", "Applications Applied Program", "Applications Applied Term", "Ping Timestamp"]
+        data_sample = filtered_df[cols_to_include].head(300).to_csv(index=False)
+
         answer = ask_gpt(
             prompt=f"Here is the data:\n\n{data_sample}\n\nQuestion: {user_question}",
             system_prompt="You are a data analyst assistant that answers questions about CSV-style data."
