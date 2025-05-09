@@ -15,7 +15,7 @@ st.set_page_config(layout="wide")
 
 @st.cache_resource
 def get_gsheet_client():
-    creds_dict = json.loads(st.secrets["gcp"])
+    creds_dict = dict(st.secrets["gcp"])
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
     client = gspread.authorize(creds)
