@@ -11,6 +11,8 @@ import gspread
 import json
 from oauth2client.service_account import ServiceAccountCredentials
 
+st.set_page_config(layout="wide")
+
 @st.cache_resource
 def get_gsheet_client():
     creds_dict = json.loads(st.secrets["gcp"])
@@ -40,7 +42,6 @@ if "session_id" not in st.session_state:
 
 
 # --- Setup ---
-st.set_page_config(layout="wide")
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 gsu_colors = ['#0055CC', '#00A3AD', '#FDB913', '#C8102E']
 st.image("GSU Logo Stacked.png", width=160)
