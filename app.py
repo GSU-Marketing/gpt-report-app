@@ -40,8 +40,8 @@ if "session_id" not in st.session_state:
 
 
 # --- Setup ---
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 st.set_page_config(layout="wide")
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 gsu_colors = ['#0055CC', '#00A3AD', '#FDB913', '#C8102E']
 st.image("GSU Logo Stacked.png", width=160)
 st.markdown("## GPT-Powered Graduate-Marketing Data Explorer", unsafe_allow_html=True)
