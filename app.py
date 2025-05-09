@@ -145,9 +145,9 @@ if ip and "visitor_logged" not in st.session_state:
 
     try:
         log_visitor_to_sheet(ip, page=view, session_id=st.session_state.session_id)
-    st.session_state.visitor_logged = True
+        st.session_state.visitor_logged = True
     except Exception as e:
-    st.warning(f"⚠️ Initial visitor log failed: {e}")
+        st.warning(f"⚠️ Initial visitor log failed: {e}")
 
 
 # --- Filters with session state ---
