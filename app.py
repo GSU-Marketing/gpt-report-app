@@ -121,7 +121,6 @@ try:
         st.sidebar.success("✅ Using uploaded file.")
     elif "gdrive" in st.secrets:
         df = load_data_from_gdrive()
-        st.sidebar.success("✅ Using secure Google Drive data.")
         st.sidebar.caption("🔐 Data Source: Private Google Drive")
     else:
         st.error("🚨 No data source available. Please upload a file or configure Google Drive access.")
@@ -264,7 +263,7 @@ if view == "Page 1: Funnel Overview":
     inquiries = len(filtered_df[filtered_df['Person Status'] == 'Inquiry'])
     applicants = len(filtered_df[filtered_df['Person Status'] == 'Applicant'])
     enrolled = len(filtered_df[filtered_df['Person Status'] == 'Enrolled'])
-    stacked = st.sidebar.checkbox("📱 Mobile View", value=False)
+    stacked = st.sidebar.checkbox("📱 Mobile View", value=True)
 
     if stacked:
         st.metric("🧠 Inquiries", inquiries)
@@ -305,7 +304,7 @@ if view == "Page 1: Funnel Overview":
                  title="Leads by Term", color_discrete_sequence=gsu_colors)
     st.plotly_chart(fig, use_container_width=stacked, config={'displayModeBar': False})
 
-    if st.sidebar.checkbox("🧠 Show Page Summary", value=True):
+    if st.sidebar.checkbox("🧠 Show Page Summary", value=False):
         st.markdown("### 🧠 Summary")
         with st.spinner("Summarizing Page 1..."):
             max_rows = 1000 // max(len(filtered_df.columns), 1)
