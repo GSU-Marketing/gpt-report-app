@@ -46,6 +46,12 @@ client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 gsu_colors = ['#0055CC', '#00A3AD', '#FDB913', '#C8102E']
 st.image("GSU Logo Stacked.png", width=160)
 st.markdown("## GPT-Powered Graduate-Marketing Data Explorer", unsafe_allow_html=True)
+if "mobile_view" not in st.session_state:
+    st.session_state.mobile_view = True
+
+st.sidebar.subheader("🖼️ View Settings")
+st.session_state.mobile_view = st.sidebar.checkbox("📱 Enable Mobile View", value=st.session_state.mobile_view)
+
 
 # --- Cached functions ---
 @st.cache_data
@@ -88,7 +94,8 @@ def load_data_from_gdrive():
         status, done = downloader.next_chunk()
 
     fh.seek(0)
-    return pd.read_parquet(fh)
+    return pd.read_excel(fh)  # ✅ Correct for Excel
+
 
 # --- GPT Helper Function ---
 def ask_gpt(prompt: str, system_prompt: str, temperature: float = 0.4):
@@ -185,35 +192,29 @@ else:
 # --- Apply Date Range Filter ---
 from datetime import datetime
 
-min_date = pd.to_datetime("2022-07-01")
-max_date = pd.to_datetime("2025-12-31")
+
 
 assert pd.api.types.is_datetime64_any_dtype(filtered_df["Ping Timestamp"])
 
 
-ping_dates = pd.to_datetime(filtered_df["Ping Timestamp"], errors="coerce")
-valid_dates = ping_dates.dropna()
-data_min = valid_dates.min()
-data_max = valid_dates.max()
-
-start_date = max(min_date, data_min)
-end_date = min(max_date, data_max)
+ping_dates = pd.to_datetime(filtered_df["Ping Timestamp"], errors="coerce").dropna()
+data_min, data_max = ping_dates.min(), ping_dates.max()
 
 selected_dates = st.sidebar.date_input(
     "📅 Date Range (Ping Timestamp)",
-    (start_date.date(), end_date.date()),
-    min_value=min_date.date(),
-    max_value=max_date.date()
+    value=(data_min.date(), data_max.date()),  # full range by default
+    min_value=data_min.date(),
+    max_value=data_max.date()
 )
 
 if isinstance(selected_dates, tuple) and len(selected_dates) == 2:
     start, end = pd.to_datetime(selected_dates[0]), pd.to_datetime(selected_dates[1])
+    filtered_df = filtered_df[(ping_dates >= start) & (ping_dates <= end)]
     st.sidebar.caption(f"📆 Showing data from **{start.date()}** to **{end.date()}**")
 
-    filtered_df = filtered_df[
-        (pd.to_datetime(filtered_df["Ping Timestamp"], errors="coerce") >= start) &
-        (pd.to_datetime(filtered_df["Ping Timestamp"], errors="coerce") <= end)
-    ]
+
+
+    
 
 
 # --- GPT Sidebar Chat + Summary ---
@@ -355,7 +356,7 @@ elif view == "Page 2: Programs & Registration Hours":
 
     st.plotly_chart(fig, config={'displayModeBar': False})
 
-    if st.sidebar.checkbox("🧠 Show Page Summary", value=True):
+    if st.sidebar.checkbox("🧠 Show Page Summary", value=False):
         st.markdown("### 🧠 Summary")
         with st.spinner("Summarizing Page 2..."):
 
@@ -434,7 +435,7 @@ elif view == "Page 3: Engagement & Channels":
             st.plotly_chart(fig, config={'displayModeBar': False})
 
 
-    if st.sidebar.checkbox("🧠 Show Page Summary", value=True):
+    if st.sidebar.checkbox("🧠 Show Page Summary", value=False):
         st.markdown("### 🧠 Summary")
         with st.spinner("Summarizing Page 3..."):
 
