@@ -183,34 +183,29 @@ st.session_state.program_filter = selected_program
 st.session_state.status_filter = selected_status
 st.session_state.term_filter = selected_term
 
-if selected_program == "All" and selected_status == "All" and selected_term == "All":
-    filtered_df = df.copy()
-else:
-    filtered_df = get_filtered_data(df, selected_program, selected_status, selected_term)
 
+# Step 1: Initial filtering
+base_filtered_df = get_filtered_data(df, selected_program, selected_status, selected_term)
 
-# --- Apply Date Range Filter ---
-from datetime import datetime
-
-
-
-assert pd.api.types.is_datetime64_any_dtype(filtered_df["Ping Timestamp"])
-
-
-ping_dates = pd.to_datetime(filtered_df["Ping Timestamp"], errors="coerce").dropna()
+# Step 2: Get actual date bounds from filtered data
+ping_dates = pd.to_datetime(base_filtered_df["Ping Timestamp"], errors="coerce").dropna()
 data_min, data_max = ping_dates.min(), ping_dates.max()
 
+# Step 3: Let user override date range (defaults to range of filtered data)
 selected_dates = st.sidebar.date_input(
     "📅 Date Range (Ping Timestamp)",
-    value=(data_min.date(), data_max.date()),  # full range by default
+    value=(data_min.date(), data_max.date()),
     min_value=data_min.date(),
     max_value=data_max.date()
 )
 
+# Step 4: Final filter — apply date selection
 if isinstance(selected_dates, tuple) and len(selected_dates) == 2:
     start, end = pd.to_datetime(selected_dates[0]), pd.to_datetime(selected_dates[1])
-    filtered_df = filtered_df[(ping_dates >= start) & (ping_dates <= end)]
+    filtered_df = base_filtered_df[(ping_dates >= start) & (ping_dates <= end)]
     st.sidebar.caption(f"📆 Showing data from **{start.date()}** to **{end.date()}**")
+else:
+    filtered_df = base_filtered_df
 
 
 
