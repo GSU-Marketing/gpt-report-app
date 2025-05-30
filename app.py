@@ -79,22 +79,30 @@ def summarize_funnel_metrics(df):
 
 @st.cache_data
 def load_data_from_gdrive():
-    creds_data = base64.b64decode(st.secrets["gdrive"]["token_pickle"])
-    creds = pickle.loads(creds_data)
-    service = build('drive', 'v3', credentials=creds)
+    client = get_gsheet_client()
+    sheet = client.open_by_key(st.secrets["gdrive"]["file_id"]).sheet1
+    records = sheet.get_all_records()
+    return pd.DataFrame(records)
 
-    file_id = st.secrets["gdrive"]["file_id"]
-    request = service.files().get_media(fileId=file_id)
-    fh = io.BytesIO()
 
-    from googleapiclient.http import MediaIoBaseDownload
-    downloader = MediaIoBaseDownload(fh, request)
-    done = False
-    while not done:
-        status, done = downloader.next_chunk()
+## not using the below, testing new grab from google sheets ###
+#def load_data_from_gdrive():
+    #creds_data = base64.b64decode(st.secrets["gdrive"]["token_pickle"])
+    #creds = pickle.loads(creds_data)
+    #service = build('drive', 'v3', credentials=creds)
 
-    fh.seek(0)
-    return pd.read_excel(fh)  # ✅ Correct for Excel
+    #file_id = st.secrets["gdrive"]["file_id"]
+    #request = service.files().get_media(fileId=file_id)
+    #fh = io.BytesIO()
+
+    #from googleapiclient.http import MediaIoBaseDownload
+    #downloader = MediaIoBaseDownload(fh, request)
+    #done = False
+    #while not done:
+     #   status, done = downloader.next_chunk()
+
+    #fh.seek(0)
+    #return pd.read_excel(fh)  # ✅ Correct for Excel
 
 
 # --- GPT Helper Function ---
