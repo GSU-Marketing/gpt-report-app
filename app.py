@@ -134,8 +134,9 @@ def preprocess_timestamps(df):
     return df
 
 @st.cache_data(ttl=3600)
-def get_enriched_geo_df(filtered_df, reader):
-    return enrich_geo_fields(filtered_df.copy(), reader)
+def get_enriched_geo_df(filtered_df, _reader):  # 👈 Note the leading underscore
+    return enrich_geo_fields(filtered_df.copy(), _reader)
+
 
 @st.cache_data
 def get_filtered_data(df, program, status, term):
