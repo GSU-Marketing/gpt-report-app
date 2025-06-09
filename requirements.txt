@@ -1,15 +1,30 @@
+# Required for base functionality
 streamlit
 pandas
-openai>=1.0.0
-openai
-python-dotenv
-openpyxl
-pyarrow
+openpyxl  # for Excel read/write
+pyarrow  # for .parquet support
 plotly
+
+# Google integrations
 google-auth
 google-auth-httplib2
 google-auth-oauthlib
 google-api-python-client
 gspread
+oauth2client  # legacy but used for service accounts
+
+# GeoIP2 and geolocation
+geoip2  # 👈 NEW — required for MMDB reading
+requests  # already likely present
+
+# JS integration
 streamlit-javascript
-oauth2client
+
+# US state normalization
+us  # 👈 NEW — for converting "GA" → "Georgia"
+
+# GPT API
+openai>=1.0.0
+
+# Optional utilities
+python-dotenv  # For local dev secrets, if used
