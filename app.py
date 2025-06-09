@@ -573,6 +573,26 @@ elif view == "Page 5: Geographic Insights":
         lambda x: us.states.lookup(str(x)).name if us.states.lookup(str(x)) else x
     )
 
+# --- Top cities and ZIPs outside Georgia (non-GA) ---
+    non_ga_df = geo_df[geo_df["region"] != "Georgia"].copy()
+
+# Top ZIPs outside Georgia
+    zip_counts_non_ga = (
+        non_ga_df["Zip Code"]
+        .astype(str)
+        .str.zfill(5)
+        .replace("nan", pd.NA)
+        .dropna()
+        .value_counts()
+        .reset_index()
+    )
+    zip_counts_non_ga.columns = ["Zip Code", "Count"]
+
+# Top cities outside Georgia
+    non_ga_df["City_Region"] = non_ga_df["city"].fillna("") + ", " + non_ga_df["region"].fillna("")
+    city_counts_non_ga = non_ga_df["City_Region"].value_counts().reset_index()
+    city_counts_non_ga.columns = ["City, Region", "Count"]
+
 
 
     # Show ZIP code distribution
@@ -633,7 +653,16 @@ dom_counts.columns = ["Region", "Count"]
 fig_domestic = px.pie(dom_counts, names="Region", values="Count", title="USA vs International Leads")
 
 
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["📬 Top ZIP Codes", "🗺 US States", "🌐 Countries", "🏙 Cities", "🇺🇸 vs 🌍"])
+tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+    "📬 Top ZIP Codes", 
+    "🗺 US States", 
+    "🌐 Countries", 
+    "🏙 Cities", 
+    "🇺🇸 vs 🌍",
+    "🌆 Cities Outside GA", 
+    "📮 ZIPs Outside GA"
+])
+
 
 with tab1:
     st.markdown("### 📬 Top ZIP Codes")
@@ -654,6 +683,14 @@ with tab4:
 with tab5:
     st.markdown("### 🇺🇸 Domestic vs 🌍 International")
     st.plotly_chart(fig_domestic)
+
+with tab6:
+    st.markdown("### 🌆 Top Cities Outside Georgia")
+    st.dataframe(city_counts_non_ga.head(10))
+
+with tab7:
+    st.markdown("### 📮 Top ZIPs Outside Georgia")
+    st.dataframe(zip_counts_non_ga.head(10))
 
     
     
