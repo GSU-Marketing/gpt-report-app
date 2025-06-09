@@ -568,7 +568,7 @@ elif view == "Page 5: Geographic Insights":
     st.subheader("🌍 Geographic Insights")
 
     reader = get_geoip_reader()
-    geo_df = get_enriched_geo_df(filtered_df, _reader)
+    geo_df = get_enriched_geo_df(filtered_df, reader)
     geo_df["region"] = geo_df["region"].apply(lambda x: us.states.lookup(x).name if us.states.lookup(x) else x)
 
 
