@@ -648,7 +648,7 @@ fig_zip = px.choropleth(
     state_counts,
     geojson=us_states_geojson,
     locations="region",
-    featureidkey="properties.name",
+    featureidkey="properties.NAME",
     color="count",
     title="Lead Density by US State",
     scope="usa"
