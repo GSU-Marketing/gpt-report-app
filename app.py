@@ -574,8 +574,7 @@ elif view == "Page 5: Geographic Insights":
         lambda x: us.states.lookup(str(x)).name if us.states.lookup(str(x)) else str(x)
     )
 
-# Step 2: Remove rows not matching GeoJSON (optional fallback)
-    geo_df = geo_df[geo_df["region"].isin(valid_state_names)]
+
 
 
 
