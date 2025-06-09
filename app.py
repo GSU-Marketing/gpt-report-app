@@ -619,7 +619,7 @@ elif view == "Page 5: Geographic Insights":
     us_states_geojson = load_us_states_geojson()
 
 # ✅ Extract list of valid U.S. state names from GeoJSON
-    valid_state_names = [f["properties"]["name"] for f in us_states_geojson["features"]]
+    valid_state_names = [f["properties"]["NAME"] for f in us_states_geojson["features"]]
 
 # 🧹 Clean and standardize state names
     geo_df["region"] = geo_df["region"].apply(
