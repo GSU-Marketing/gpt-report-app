@@ -616,11 +616,28 @@ elif view == "Page 5: Geographic Insights":
 
 
     st.markdown("### 📬 Users by ZIP Code (USA)")
-
+    # 🌍 Load GeoJSON
     us_states_geojson = load_us_states_geojson()
 
-# ✅ NEW: Extract valid state names from GeoJSON
+# ✅ Extract list of valid U.S. state names from GeoJSON
     valid_state_names = [f["properties"]["name"] for f in us_states_geojson["features"]]
+
+# 🧹 Clean and standardize state names
+    geo_df["region"] = geo_df["region"].apply(
+        lambda x: us.states.lookup(str(x)).name if us.states.lookup(str(x)) else str(x)
+    )
+    geo_df["region"] = geo_df["region"].astype(str).str.strip()
+
+# 🔍 Optional debug: show states that won’t map to GeoJSON
+    unmatched = geo_df[~geo_df["region"].isin(valid_state_names)]
+    if not unmatched.empty:
+        st.warning("⚠️ The following regions don't match U.S. states in the GeoJSON:")
+        st.dataframe(unmatched["region"].value_counts().reset_index().rename(columns={"index": "Unmatched", "region": "Count"}))
+
+# ✅ Keep only rows with valid region names
+    geo_df = geo_df[geo_df["region"].isin(valid_state_names)]
+
+    
 
 
 # Summarize by region (state)
