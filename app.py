@@ -37,7 +37,10 @@ def get_geoip_reader():
             response = session.get(URL, params={"id": file_id, "confirm": token}, stream=True)
         with open(destination, "wb") as f:
             for chunk in response.iter_content(32768):
+                if b"<html" in chunk[:100].lower():
+                    raise ValueError("❌ ERROR: File is not a valid .mmdb binary. Likely an HTML error page was downloaded.")
                 f.write(chunk)
+
 
     if not os.path.exists(LOCAL_MMDB_PATH):
         with st.spinner("⬇️ Downloading GeoLite2-City.mmdb from Google Drive..."):
