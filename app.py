@@ -569,9 +569,15 @@ elif view == "Page 5: Geographic Insights":
 
     reader = get_geoip_reader()
     geo_df = get_enriched_geo_df(filtered_df, reader)
+    # Step 1: Convert region to full state name where possible
     geo_df["region"] = geo_df["region"].apply(
-        lambda x: us.states.lookup(str(x)).name if us.states.lookup(str(x)) else x
+        lambda x: us.states.lookup(str(x)).name if us.states.lookup(str(x)) else str(x)
     )
+
+# Step 2: Remove rows not matching GeoJSON (optional fallback)
+    geo_df = geo_df[geo_df["region"].isin(valid_state_names)]
+
+
 
 # --- Top cities and ZIPs outside Georgia (non-GA) ---
     non_ga_df = geo_df[geo_df["region"] != "Georgia"].copy()
