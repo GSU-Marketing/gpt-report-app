@@ -562,7 +562,6 @@ elif view == "Page 4: Admin Dashboard":
         st.error("❌ Failed to load visitor logs.")
         st.exception(e)
 
-
 # --- PAGE 5: Geographic Insights ---
 elif view == "Page 5: Geographic Insights":
     st.subheader("🌍 Geographic Insights")
@@ -572,20 +571,22 @@ elif view == "Page 5: Geographic Insights":
     # ✅ 1. Enrich geo data
     geo_df = get_enriched_geo_df(filtered_df, reader)
 
-# ✅ 2. Normalize regions immediately after enrichment
-    geo_df["region"] = geo_df["region"].apply(
-        lambda x: us.states.lookup(str(x)).name if us.states.lookup(str(x)) else str(x)
-    ).astype(str).str.strip()
-
-# ✅ 3. Load GeoJSON once
+    # ✅ 2. Create U.S.-only DataFrame with normalized state names
     us_states_geojson = load_us_states_geojson()
     valid_state_names = [f["properties"]["NAME"] for f in us_states_geojson["features"]]
 
-# ✅ 4. Filter now that regions are normalized
-    geo_df = geo_df[geo_df["region"].isin(valid_state_names)]
+    # --- Full Geo Data: unfiltered, for global views ---
+    geo_df_all = geo_df.copy()
 
-# ✅ 5. Debug unmatched (optional — will likely be empty now)
-    unmatched = geo_df[~geo_df["region"].isin(valid_state_names)]
+# --- U.S. Only (for ZIPs, U.S. state maps) ---
+    geo_df_us = geo_df.copy()
+    geo_df_us["region"] = geo_df_us["region"].apply(
+        lambda x: us.states.lookup(str(x)).name if us.states.lookup(str(x)) else str(x)
+    ).astype(str).str.strip()
+    geo_df_us = geo_df_us[geo_df_us["region"].isin(valid_state_names)]
+
+# --- Optional debug of unmatched states ---
+    unmatched = geo_df_all[~geo_df_all["region"].isin(valid_state_names)]
     if not unmatched.empty:
         st.warning("⚠️ The following regions don't match U.S. states in the GeoJSON:")
         st.dataframe(
@@ -595,12 +596,9 @@ elif view == "Page 5: Geographic Insights":
             .rename(columns={"index": "Unmatched", "region": "Count"})
         )
 
-    
+    # --- Top cities and ZIPs outside Georgia (non-GA, USA only) ---
+    non_ga_df = geo_df_us[geo_df_us["region"] != "Georgia"].copy()
 
-# --- Top cities and ZIPs outside Georgia (non-GA) ---
-    non_ga_df = geo_df[geo_df["region"] != "Georgia"].copy()
-
-# Top ZIPs outside Georgia
     zip_counts_non_ga = (
         non_ga_df["Zip Code"]
         .astype(str)
@@ -612,16 +610,13 @@ elif view == "Page 5: Geographic Insights":
     )
     zip_counts_non_ga.columns = ["Zip Code", "Count"]
 
-# Top cities outside Georgia
     non_ga_df["City_Region"] = non_ga_df["city"].fillna("") + ", " + non_ga_df["region"].fillna("")
     city_counts_non_ga = non_ga_df["City_Region"].value_counts().reset_index()
     city_counts_non_ga.columns = ["City, Region", "Count"]
 
-
-
-    # Show ZIP code distribution
+# --- US ZIP distribution ---
     zip_counts = (
-        geo_df["Zip Code"]
+        geo_df_us["Zip Code"]
         .astype(str)
         .str.zfill(5)
         .replace("nan", pd.NA)
@@ -631,98 +626,93 @@ elif view == "Page 5: Geographic Insights":
     )
     zip_counts.columns = ["Zip Code", "Count"]
 
+# --- State-level choropleth ---
+    state_counts = geo_df_us["region"].value_counts().reset_index()
+    state_counts.columns = ["region", "count"]
 
+    fig_zip = px.choropleth(
+        state_counts,
+        geojson=us_states_geojson,
+        locations="region",
+        featureidkey="properties.NAME",
+        color="count",
+        title="Lead Density by US State",
+        scope="usa"
+    )
+    fig_zip.update_geos(fitbounds="locations", visible=False)
 
-    st.markdown("### 📬 Users by ZIP Code (USA)")
-    # 🌍 Load GeoJSON
+# --- 🌍 Global map — switch to geo_df_all ---
+    country_counts = geo_df_all["country"].value_counts().reset_index()
+    country_counts.columns = ["Country", "Count"]
 
+    fig_country = px.choropleth(
+        country_counts,
+        locations="Country",
+        locationmode="country names",
+        color="Count",
+        title="Global Lead Distribution"
+    )
 
-    
+# --- 🌎 Domestic vs International using geo_df_all ---
+    def normalize_country(country):
+        country = str(country or "").strip().lower()
+        return "USA" if country in {"united states", "us", "usa", "u.s.", "u.s.a.", "united states of america"} else "International"
 
-
-# Summarize by region (state)
-# Summarize by region (state) — must go BEFORE tab definitions
-state_counts = geo_df["region"].value_counts().reset_index()
-state_counts.columns = ["region", "count"]
-
-fig_zip = px.choropleth(
-    state_counts,
-    geojson=us_states_geojson,
-    locations="region",
-    featureidkey="properties.NAME",
-    color="count",
-    title="Lead Density by US State",
-    scope="usa"
-)
-fig_zip.update_geos(fitbounds="locations", visible=False)
-
-# Compute before tab usage
-city_region_df = geo_df.copy()
-city_region_df["City_Region"] = city_region_df["city"].fillna("") + ", " + city_region_df["region"].fillna("")
-city_counts = city_region_df["City_Region"].value_counts().reset_index()
-city_counts.columns = ["City, Region", "Count"]
-
-country_counts = geo_df["country"].value_counts().reset_index()
-country_counts.columns = ["Country", "Count"]
-fig_country = px.choropleth(
-    country_counts,
-    locations="Country",
-    locationmode="country names",
-    color="Count",
-    title="Global Lead Distribution"
-)
-
-geo_df["is_domestic"] = geo_df["country"].fillna("").apply(
-    lambda x: "USA" if "united" in x.lower() and "state" in x.lower() else "International"
-)
-dom_counts = geo_df["is_domestic"].value_counts().reset_index()
-dom_counts.columns = ["Region", "Count"]
-fig_domestic = px.pie(dom_counts, names="Region", values="Count", title="USA vs International Leads")
-
-
-tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
-    "📬 Top ZIP Codes", 
-    "🗺 US States", 
-    "🌐 Countries", 
-    "🏙 Cities", 
-    "🇺🇸 vs 🌍",
-    "🌆 Cities Outside GA", 
-    "📮 ZIPs Outside GA"
-])
-
-
-with tab1:
-    st.markdown("### 📬 Top ZIP Codes")
-    st.dataframe(zip_counts.head(10))  # already sorted by value_counts
-
-with tab2:
-    st.markdown("### 🗺 Lead Density by U.S. State")
-    st.plotly_chart(fig_zip)
-
-with tab3:
-    st.markdown("### 🌐 Global Heatmap by Country")
-    st.plotly_chart(fig_country)
-
-with tab4:
-    st.markdown("### 🏙 Top 10 Cities by Engagement")
-    st.dataframe(city_counts.head(10))
-
-with tab5:
-    st.markdown("### 🇺🇸 Domestic vs 🌍 International")
-    st.plotly_chart(fig_domestic)
-
-with tab6:
-    st.markdown("### 🌆 Top Cities Outside Georgia")
-    st.dataframe(city_counts_non_ga.head(10))
-
-with tab7:
-    st.markdown("### 📮 Top ZIPs Outside Georgia")
-    st.dataframe(zip_counts_non_ga.head(10))
+    geo_df_all["is_domestic"] = geo_df_all["country"].apply(normalize_country)
 
     
-    
+  
+    dom_counts = geo_df_all["is_domestic"].value_counts().reset_index()
+    dom_counts.columns = ["Region", "Count"]
 
-    # Global View: city & region
+    fig_domestic = px.pie(dom_counts, names="Region", values="Count", title="USA vs International Leads")
+
+# --- 🌆 Global cities ---
+    city_region_df = geo_df_all.copy()
+    city_region_df["City_Region"] = city_region_df["city"].fillna("") + ", " + city_region_df["region"].fillna("")
+    city_counts = city_region_df["City_Region"].value_counts().reset_index()
+    city_counts.columns = ["City, Region", "Count"]
 
 
-   
+
+
+
+    # --- Tab Layout ---
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+        "📬 Top ZIP Codes", 
+        "🗺 US States", 
+        "🌐 Countries", 
+        "🏙 Cities", 
+        "🇺🇸 vs 🌍",
+        "🌆 Cities Outside GA", 
+        "📮 ZIPs Outside GA"
+    ])
+
+    with tab1:
+        st.markdown("### 📬 Top ZIP Codes")
+        st.dataframe(zip_counts.head(10))
+
+    with tab2:
+        st.markdown("### 🗺 Lead Density by U.S. State")
+        st.plotly_chart(fig_zip)
+
+    with tab3:
+        st.markdown("### 🌐 Global Heatmap by Country")
+        st.plotly_chart(fig_country)
+
+    with tab4:
+        st.markdown("### 🏙 Top 10 Cities by Engagement")
+        st.dataframe(city_counts.head(10))
+
+    with tab5:
+        st.markdown("### 🇺🇸 Domestic vs 🌍 International")
+        st.plotly_chart(fig_domestic)
+
+    with tab6:
+        st.markdown("### 🌆 Top Cities Outside Georgia")
+        st.dataframe(city_counts_non_ga.head(10))
+
+    with tab7:
+        st.markdown("### 📮 Top ZIPs Outside Georgia")
+        st.dataframe(zip_counts_non_ga.head(10))
+
