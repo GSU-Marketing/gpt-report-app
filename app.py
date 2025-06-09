@@ -7,11 +7,45 @@ from google.oauth2.credentials import Credentials
 import base64
 import pickle
 import io
+import us  # pip install us
 import gspread
 import json
 from oauth2client.service_account import ServiceAccountCredentials
 
 st.set_page_config(layout="wide")
+
+import os
+import requests
+
+
+LOCAL_MMDB_PATH = "/tmp/GeoLite2-City.mmdb"  # Streamlit supports /tmp for temp files
+
+@st.cache_resource
+def get_geoip_reader():
+    import geoip2.database
+
+    def download_large_file_from_drive(file_id, destination):
+        session = requests.Session()
+        URL = "https://docs.google.com/uc?export=download"
+
+        response = session.get(URL, params={"id": file_id}, stream=True)
+        token = None
+        for key, value in response.cookies.items():
+            if key.startswith("download_warning"):
+                token = value
+        if token:
+            response = session.get(URL, params={"id": file_id, "confirm": token}, stream=True)
+        with open(destination, "wb") as f:
+            for chunk in response.iter_content(32768):
+                f.write(chunk)
+
+    if not os.path.exists(LOCAL_MMDB_PATH):
+        with st.spinner("⬇️ Downloading GeoLite2-City.mmdb from Google Drive..."):
+            download_large_file_from_drive("1_wuanXceHz-XUaXSMrIT-lBM7qWrCPqI", LOCAL_MMDB_PATH)
+
+    return geoip2.database.Reader(LOCAL_MMDB_PATH)
+
+
 
 @st.cache_resource
 def get_gsheet_client():
@@ -20,6 +54,41 @@ def get_gsheet_client():
     creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
     client = gspread.authorize(creds)
     return client
+
+@st.cache_data(ttl=3600)
+def load_google_sheet(sheet_name="STAGE 5"):
+    client = get_gsheet_client()
+    worksheet = client.open("2025-2026 Grad Marketing Data (Refreshed Weekly)").worksheet(sheet_name)
+    data = worksheet.get_all_records()
+    return pd.DataFrame(data), worksheet
+
+def ip_to_geo(ip, reader):
+    try:
+        response = reader.city(ip)
+        return {
+            "Zip Code": response.postal.code,
+            "city": response.city.name,
+            "region": response.subdivisions.most_specific.name,
+            "country": response.country.name
+        }
+
+
+    except:
+        return {"Zip Code": None, "city": None, "region": None, "country": None}
+
+def enrich_geo_fields(df, reader):
+    def enrich_row(row):
+        geo = ip_to_geo(row.get("Ping IP Address", ""), reader)
+        if pd.notna(row.get("Zip Code")) and str(row["Zip Code"]).strip():
+            geo["Zip Code"] = row["Zip Code"]  # Preserve manual ZIPs
+        return pd.Series(geo)
+
+
+    enriched = df.apply(enrich_row, axis=1)
+    for col in ["Zip Code", "city", "region", "country"]:
+        df[col] = enriched[col]
+    return df
+
 
 def log_visitor_to_sheet(ip, page, session_id, prompt=None):
     client = get_gsheet_client()
@@ -61,6 +130,10 @@ def preprocess_timestamps(df):
             df[col] = pd.to_datetime(df[col], errors="coerce")
     return df
 
+@st.cache_data(ttl=3600)
+def get_enriched_geo_df(filtered_df, reader):
+    return enrich_geo_fields(filtered_df.copy(), reader)
+
 @st.cache_data
 def get_filtered_data(df, program, status, term):
     if program != "All":
@@ -83,6 +156,12 @@ def load_data_from_gdrive():
     sheet = client.open_by_key(st.secrets["gdrive"]["file_id"]).sheet1
     records = sheet.get_all_records()
     return pd.DataFrame(records)
+@st.cache_data
+def load_us_states_geojson():
+    file_id = "1hsUzy5HmhEa_s5vu3uUdpnps-hpbQ_WQ"
+    url = f"https://drive.google.com/uc?export=download&id={file_id}"
+    r = requests.get(url)
+    return json.loads(r.content)
 
 
 ## not using the below, testing new grab from google sheets ###
@@ -153,7 +232,8 @@ view = st.sidebar.selectbox("Select Dashboard Page", [
     "Page 1: Funnel Overview",
     "Page 2: Programs & Registration Hours",
     "Page 3: Engagement & Channels",
-    "Page 4: Admin Dashboard"
+    "Page 4: Admin Dashboard",
+    "Page 5: Geographic Insights"
 ])
 
 
@@ -477,3 +557,102 @@ elif view == "Page 4: Admin Dashboard":
     except Exception as e:
         st.error("❌ Failed to load visitor logs.")
         st.exception(e)
+
+
+# --- PAGE 5: Geographic Insights ---
+elif view == "Page 5: Geographic Insights":
+    st.subheader("🌍 Geographic Insights")
+
+    reader = get_geoip_reader()
+    geo_df = get_enriched_geo_df(filtered_df, reader)
+    geo_df["region"] = geo_df["region"].apply(lambda x: us.states.lookup(x).name if us.states.lookup(x) else x)
+
+
+
+    # Show ZIP code distribution
+    zip_counts = (
+        geo_df["Zip Code"]
+        .astype(str)
+        .str.zfill(5)
+        .replace("nan", pd.NA)
+        .dropna()
+        .value_counts()
+        .reset_index()
+    )
+    zip_counts.columns = ["Zip Code", "Count"]
+
+
+
+    st.markdown("### 📬 Users by ZIP Code (USA)")
+    
+    us_states_geojson = load_us_states_geojson()
+
+# Summarize by region (state)
+# Summarize by region (state) — must go BEFORE tab definitions
+state_counts = geo_df["region"].value_counts().reset_index()
+state_counts.columns = ["region", "count"]
+
+fig_zip = px.choropleth(
+    state_counts,
+    geojson=us_states_geojson,
+    locations="region",
+    featureidkey="properties.name",
+    color="count",
+    title="Lead Density by US State",
+    scope="usa"
+)
+fig_zip.update_geos(fitbounds="locations", visible=False)
+
+# Compute before tab usage
+city_region_df = geo_df.copy()
+city_region_df["City_Region"] = city_region_df["city"].fillna("") + ", " + city_region_df["region"].fillna("")
+city_counts = city_region_df["City_Region"].value_counts().reset_index()
+city_counts.columns = ["City, Region", "Count"]
+
+country_counts = geo_df["country"].value_counts().reset_index()
+country_counts.columns = ["Country", "Count"]
+fig_country = px.choropleth(
+    country_counts,
+    locations="Country",
+    locationmode="country names",
+    color="Count",
+    title="Global Lead Distribution"
+)
+
+geo_df["is_domestic"] = geo_df["country"].fillna("").apply(
+    lambda x: "USA" if "united" in x.lower() and "state" in x.lower() else "International"
+)
+dom_counts = geo_df["is_domestic"].value_counts().reset_index()
+dom_counts.columns = ["Region", "Count"]
+fig_domestic = px.pie(dom_counts, names="Region", values="Count", title="USA vs International Leads")
+
+
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["📬 Top ZIP Codes", "🗺 US States", "🌐 Countries", "🏙 Cities", "🇺🇸 vs 🌍"])
+
+with tab1:
+    st.markdown("### 📬 Top ZIP Codes")
+    st.dataframe(zip_counts.head(10))  # already sorted by value_counts
+
+with tab2:
+    st.markdown("### 🗺 Lead Density by U.S. State")
+    st.plotly_chart(fig_zip)
+
+with tab3:
+    st.markdown("### 🌐 Global Heatmap by Country")
+    st.plotly_chart(fig_country)
+
+with tab4:
+    st.markdown("### 🏙 Top 10 Cities by Engagement")
+    st.dataframe(city_counts.head(10))
+
+with tab5:
+    st.markdown("### 🇺🇸 Domestic vs 🌍 International")
+    st.plotly_chart(fig_domestic)
+
+    
+    
+
+    # Global View: city & region
+
+
+   
