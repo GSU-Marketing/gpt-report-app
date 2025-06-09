@@ -568,15 +568,30 @@ elif view == "Page 5: Geographic Insights":
     st.subheader("🌍 Geographic Insights")
 
     reader = get_geoip_reader()
+
+    # ✅ 1. Enrich Data FIRST
     geo_df = get_enriched_geo_df(filtered_df, reader)
-    # Step 1: Convert region to full state name where possible
+
+    # ✅ 2. Load GeoJSON
+    us_states_geojson = load_us_states_geojson()
+
+    # ✅ 3. Extract state names from GeoJSON
+    valid_state_names = [f["properties"]["NAME"] for f in us_states_geojson["features"]]
+
+    # ✅ 4. Normalize state names in your data
     geo_df["region"] = geo_df["region"].apply(
         lambda x: us.states.lookup(str(x)).name if us.states.lookup(str(x)) else str(x)
     )
+    geo_df["region"] = geo_df["region"].astype(str).str.strip()
 
+    # ✅ 5. Debug unmatched
+    unmatched = geo_df[~geo_df["region"].isin(valid_state_names)]
+    if not unmatched.empty:
+        st.warning("⚠️ The following regions don't match U.S. states in the GeoJSON:")
+        st.dataframe(unmatched["region"].value_counts().reset_index().rename(columns={"index": "Unmatched", "region": "Count"}))
 
-
-
+    # ✅ 6. Filter to valid U.S. states only
+    geo_df = geo_df[geo_df["region"].isin(valid_state_names)]
 
 # --- Top cities and ZIPs outside Georgia (non-GA) ---
     non_ga_df = geo_df[geo_df["region"] != "Georgia"].copy()
@@ -616,25 +631,7 @@ elif view == "Page 5: Geographic Insights":
 
     st.markdown("### 📬 Users by ZIP Code (USA)")
     # 🌍 Load GeoJSON
-    us_states_geojson = load_us_states_geojson()
 
-# ✅ Extract list of valid U.S. state names from GeoJSON
-    valid_state_names = [f["properties"]["NAME"] for f in us_states_geojson["features"]]
-
-# 🧹 Clean and standardize state names
-    geo_df["region"] = geo_df["region"].apply(
-        lambda x: us.states.lookup(str(x)).name if us.states.lookup(str(x)) else str(x)
-    )
-    geo_df["region"] = geo_df["region"].astype(str).str.strip()
-
-# 🔍 Optional debug: show states that won’t map to GeoJSON
-    unmatched = geo_df[~geo_df["region"].isin(valid_state_names)]
-    if not unmatched.empty:
-        st.warning("⚠️ The following regions don't match U.S. states in the GeoJSON:")
-        st.dataframe(unmatched["region"].value_counts().reset_index().rename(columns={"index": "Unmatched", "region": "Count"}))
-
-# ✅ Keep only rows with valid region names
-    geo_df = geo_df[geo_df["region"].isin(valid_state_names)]
 
     
 
