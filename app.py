@@ -616,8 +616,12 @@ elif view == "Page 5: Geographic Insights":
 
 
     st.markdown("### 📬 Users by ZIP Code (USA)")
-    
+
     us_states_geojson = load_us_states_geojson()
+
+# ✅ NEW: Extract valid state names from GeoJSON
+    valid_state_names = [f["properties"]["name"] for f in us_states_geojson["features"]]
+
 
 # Summarize by region (state)
 # Summarize by region (state) — must go BEFORE tab definitions
