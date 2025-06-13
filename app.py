@@ -639,27 +639,34 @@ elif view == "Page 5: Geographic Insights":
     state_counts = geo_df_us["region"].value_counts().reset_index()
     state_counts.columns = ["region", "count"]
     
+
+
     fig_zip = px.choropleth(
         state_counts,
         geojson=us_states_geojson,
         locations="region",
         featureidkey="properties.NAME",
         color="count",
-        title="Lead Density by US State",
-        scope="usa"
+        scope="usa",
+        color_continuous_scale="Blues",
+        title="Lead Density by U.S. State"
     )
-    
-    fig_zip.update_geos(fitbounds="locations", visible=False)
+
+    # ✅ This line forces proper map rendering
+    fig_zip.update_geos(fitbounds="locations", visible=True)
+
+    # ✅ Tight margins & proper centering
     fig_zip.update_layout(
-        margin={"r":0, "t":40, "l":0, "b":0},
+        margin={"r":0,"t":40,"l":0,"b":0},
         geo=dict(
             scope="usa",
-            projection_scale=5,  # Zoom level
+            projection_scale=5,
             center={"lat": 37.0902, "lon": -95.7129},  # Center of USA
             showland=True,
-            landcolor="rgb(243, 243, 243)",
+            landcolor="rgb(243, 243, 243)"
         )
     )
+
 
 
 # --- 🌍 Global map — switch to geo_df_all ---
