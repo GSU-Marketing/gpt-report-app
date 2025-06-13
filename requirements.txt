@@ -5,6 +5,9 @@ openpyxl  # for Excel read/write
 pyarrow  # for .parquet support
 plotly
 
+folium
+streamlit-folium
+
 # Google integrations
 google-auth
 google-auth-httplib2
