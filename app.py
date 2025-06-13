@@ -639,36 +639,39 @@ elif view == "Page 5: Geographic Insights":
     state_counts = geo_df_us["region"].value_counts().reset_index()
     state_counts.columns = ["region", "count"]
     
+    from streamlit_folium import st_folium
+    import folium
 
+    # Prepare state-level data
+    state_choro_data = dict(zip(state_counts["region"], state_counts["count"]))
 
-    fig_zip = px.choropleth(
-        state_counts,
-        geojson=us_states_geojson,
-        locations="region",
-        featureidkey="properties.NAME",
-        color="count",
-        scope="usa",
-        color_continuous_scale="Blues",
-        title="Lead Density by U.S. State"
+    # Load the GeoJSON separately as a folium object
+    m = folium.Map(location=[37.8, -96], zoom_start=4, tiles="cartodbpositron")
+
+    # Add choropleth layer
+    folium.Choropleth(
+        geo_data=us_states_geojson,
+        name="choropleth",
+        data=state_counts,
+        columns=["region", "count"],
+        key_on="feature.properties.NAME",
+        fill_color="Blues",
+        fill_opacity=0.7,
+        line_opacity=0.2,
+        legend_name="Lead Count by U.S. State"
+    ).add_to(m)
+
+    # Optional: add hover tooltip with state names
+    folium.GeoJsonTooltip(fields=["NAME"]).add_to(
+        folium.GeoJson(us_states_geojson)
     )
 
-    # ✅ This line forces proper map rendering
-    fig_zip.update_geos(fitbounds="locations", visible=True)
+    from streamlit_folium import st_folium
 
-    # ✅ Tight margins & proper centering
-    fig_zip.update_layout(
-        margin={"r":0,"t":40,"l":0,"b":0},
-        geo=dict(
-            scope="usa",
-            projection_scale=5,
-            center={"lat": 37.0902, "lon": -95.7129},  # Center of USA
-            showland=True,
-            landcolor="rgb(243, 243, 243)"
-        )
-    )
-        # ✅ Add state outlines & hover tooltips
-    fig_zip.update_traces(marker_line_width=0.5, marker_line_color="black", hovertemplate="%{location}: %{z}<extra></extra>")
+    # ✅ Actually display the map
+    st_data = st_folium(m, width=900, height=600)
 
+ 
 
 # --- 🌍 Global map — switch to geo_df_all ---
     country_counts = geo_df_all["country"].value_counts().reset_index()
