@@ -648,8 +648,18 @@ elif view == "Page 5: Geographic Insights":
         title="Lead Density by US State",
         scope="usa"
     )
-    fig_zip.update_geos(fitbounds="locations", visible=True)
-
+    
+    fig_zip.update_geos(fitbounds="locations", visible=False)
+    fig_zip.update_layout(
+        margin={"r":0, "t":40, "l":0, "b":0},
+        geo=dict(
+            scope="usa",
+            projection_scale=5,  # Zoom level
+            center={"lat": 37.0902, "lon": -95.7129},  # Center of USA
+            showland=True,
+            landcolor="rgb(243, 243, 243)",
+        )
+    )
 
 
 # --- 🌍 Global map — switch to geo_df_all ---
