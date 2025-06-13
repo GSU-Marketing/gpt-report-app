@@ -431,6 +431,12 @@ elif view == "Page 2: Programs & Registration Hours":
     reg_df = filtered_df[reg_cols].copy()
     melted = reg_df.melt(var_name="Term", value_name="Hours").dropna()
 
+    # 🛡 Ensure numeric values only
+    melted["Hours"] = pd.to_numeric(melted["Hours"], errors="coerce")
+    melted = melted.dropna(subset=["Hours"])
+
+
+
     show_avg = st.sidebar.checkbox("Show Average Hours per Person", value=False)
     if show_avg:
         avg_df = melted.groupby("Term")["Hours"].mean().reset_index()
@@ -585,17 +591,20 @@ elif view == "Page 5: Geographic Insights":
     ).astype(str).str.strip()
     geo_df_us = geo_df_us[geo_df_us["region"].isin(valid_state_names)]
 
-# --- Optional debug of unmatched states ---
-    unmatched = geo_df_all[~geo_df_all["region"].isin(valid_state_names)]
-    if not unmatched.empty:
-        st.warning("⚠️ The following regions don't match U.S. states in the GeoJSON:")
-        st.dataframe(
-            unmatched["region"]
-            .value_counts()
-            .reset_index()
-            .rename(columns={"index": "Unmatched", "region": "Count"})
-        )
 
+
+# --- Optional debug of unmatched states ---
+    if st.sidebar.checkbox("🔎 Show Unmatched Regions", value=False):
+        unmatched = geo_df_all[~geo_df_all["region"].isin(valid_state_names)]
+        if not unmatched.empty:
+            st.warning("⚠️ The following regions don't match U.S. states in the GeoJSON:")
+            st.dataframe(
+                unmatched["region"]
+                .value_counts()
+                .reset_index()
+                .rename(columns={"index": "Unmatched", "region": "Count"})
+            )
+    
     # --- Top cities and ZIPs outside Georgia (non-GA, USA only) ---
     non_ga_df = geo_df_us[geo_df_us["region"] != "Georgia"].copy()
 
@@ -672,6 +681,18 @@ elif view == "Page 5: Geographic Insights":
     city_region_df["City_Region"] = city_region_df["city"].fillna("") + ", " + city_region_df["region"].fillna("")
     city_counts = city_region_df["City_Region"].value_counts().reset_index()
     city_counts.columns = ["City, Region", "Count"]
+
+
+    # --- Clean up noisy/invalid values for better UX ---
+    zip_counts["Zip Code"] = zip_counts["Zip Code"].astype(str)
+    zip_counts_non_ga["Zip Code"] = zip_counts_non_ga["Zip Code"].astype(str)
+    city_counts["City, Region"] = city_counts["City, Region"].str.strip()
+    city_counts_non_ga["City, Region"] = city_counts_non_ga["City, Region"].str.strip()
+
+    zip_counts = zip_counts[zip_counts["Zip Code"].str.lower() != "none"]
+    city_counts = city_counts[~city_counts["City, Region"].str.contains("None", case=False, na=False)]
+    city_counts_non_ga = city_counts_non_ga[~city_counts_non_ga["City, Region"].str.contains("None", case=False, na=False)]
+    zip_counts_non_ga = zip_counts_non_ga[zip_counts_non_ga["Zip Code"].str.lower() != "none"]
 
 
 
