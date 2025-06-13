@@ -666,7 +666,8 @@ elif view == "Page 5: Geographic Insights":
             landcolor="rgb(243, 243, 243)"
         )
     )
-
+        # ✅ Add state outlines & hover tooltips
+    fig_zip.update_traces(marker_line_width=0.5, marker_line_color="black", hovertemplate="%{location}: %{z}<extra></extra>")
 
 
 # --- 🌍 Global map — switch to geo_df_all ---
