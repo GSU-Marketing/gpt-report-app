@@ -638,7 +638,7 @@ elif view == "Page 5: Geographic Insights":
 # --- State-level choropleth ---
     state_counts = geo_df_us["region"].value_counts().reset_index()
     state_counts.columns = ["region", "count"]
-
+    
     fig_zip = px.choropleth(
         state_counts,
         geojson=us_states_geojson,
@@ -648,7 +648,9 @@ elif view == "Page 5: Geographic Insights":
         title="Lead Density by US State",
         scope="usa"
     )
-    fig_zip.update_geos(fitbounds="locations", visible=False)
+    fig_zip.update_geos(fitbounds="locations", visible=True)
+
+
 
 # --- 🌍 Global map — switch to geo_df_all ---
     country_counts = geo_df_all["country"].value_counts().reset_index()
