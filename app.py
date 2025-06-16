@@ -738,7 +738,8 @@ elif view == "Page 5: Geographic Insights":
 
     with tab2:
         st.markdown("### 🗺 Lead Density by U.S. State")
-        st.plotly_chart(fig_zip)
+        st_data = st_folium(m, width=900, height=600)
+
 
     with tab3:
         st.markdown("### 🌐 Global Heatmap by Country")
