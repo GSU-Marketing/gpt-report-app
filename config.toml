@@ -1,0 +1,14 @@
+[theme]
+base = "light"
+primaryColor = "#0055CC"
+secondaryBackgroundColor = "#F0F2F6"
+textColor = "#000000"
+font = "sans serif"
+baseFontWeight = "500"
+codeFontWeight = "600"
+headingFontSizes = [24, 20, 16, 14, 12, 10]
+headingFontWeights = [700, 600, 500, 400, 400, 400]
+linkUnderline = false
+chartCategoricalColors = ["#0055CC", "#00A3AD", "#FDB913", "#C8102E"]
+chartSequentialColors = ["#0055CC", "#0066DD", "#0077EE", "#3399FF", "#66BBFF"]
+dataframeHeaderBackgroundColor = "#E0E0E0"
