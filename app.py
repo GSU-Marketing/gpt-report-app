@@ -218,8 +218,8 @@ try:
             df = pd.read_parquet(uploaded_file)
         st.sidebar.success("✅ Using uploaded file.")
     elif "gdrive" in st.secrets:
-    df, worksheet = load_google_sheet(sheet_name="STAGE 5")
-    st.sidebar.caption("🔐 Data Source: Google Sheet → 'STAGE 5'")
+            df, worksheet = load_google_sheet(sheet_name="STAGE 5")
+            st.sidebar.caption("🔐 Data Source: Google Sheet → 'STAGE 5'")
 
     
 
