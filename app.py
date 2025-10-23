@@ -218,8 +218,11 @@ try:
             df = pd.read_parquet(uploaded_file)
         st.sidebar.success("✅ Using uploaded file.")
     elif "gdrive" in st.secrets:
-        df = load_data_from_gdrive()
-        st.sidebar.caption("🔐 Data Source: Private Google Drive")
+    df, worksheet = load_google_sheet(sheet_name="STAGE 5")
+    st.sidebar.caption("🔐 Data Source: Google Sheet → 'STAGE 5'")
+
+    
+
     else:
         st.error("🚨 No data source available. Please upload a file or configure Google Drive access.")
         st.stop()
