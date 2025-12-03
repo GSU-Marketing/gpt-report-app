@@ -149,9 +149,12 @@ def get_filtered_data(df, program, status, term):
     return df
 
 def summarize_funnel_metrics(df):
-    stages = ["Inquiry", "Applicant", "Enrolled"]
+    stages = ["Interest-L1", "Interest-L2", "App Completed", "Enrolled"]
     counts = {stage: len(df[df["Person Status"] == stage]) for stage in stages}
     return "\n".join([f"{stage}: {count}" for stage, count in counts.items()])
+
+
+
 
 
 @st.cache_data
@@ -356,40 +359,67 @@ if st.sidebar.checkbox("🧠 Show automatic summary", value=False):
 if view == "Page 1: Funnel Overview":
     st.subheader("🪣 Funnel Overview")
 
-    inquiries = len(filtered_df[filtered_df['Person Status'] == 'Inquiry'])
-    applicants = len(filtered_df[filtered_df['Person Status'] == 'Applicant'])
-    enrolled = len(filtered_df[filtered_df['Person Status'] == 'Enrolled'])
+    interest_l1   = len(filtered_df[filtered_df["Person Status"] == "Interest-L1"])
+    interest_l2   = len(filtered_df[filtered_df["Person Status"] == "Interest-L2"])
+    app_completed = len(filtered_df[filtered_df["Person Status"] == "App Completed"])
+    enrolled      = len(filtered_df[filtered_df["Person Status"] == "Enrolled"])
     stacked = st.sidebar.checkbox("📱 Mobile View", value=True)
-
+    
     if stacked:
-        st.metric("🧠 Inquiries", inquiries)
-        st.metric("📄 Applicants", applicants)
-        st.metric("🎓 Enrolled", enrolled)
+        st.metric("🧠 Interest-L1",   interest_l1)
+        st.metric("📂 Interest-L2",   interest_l2)
+        st.metric("📄 App Completed", app_completed)
+        st.metric("🎓 Enrolled",      enrolled)
     else:
-        col1, col2, col3 = st.columns(3)
-        col1.metric("🧠 Inquiries", inquiries)
-        col2.metric("📄 Applicants", applicants)
-        col3.metric("🎓 Enrolled", enrolled)
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric("🧠 Interest-L1",   interest_l1)
+        col2.metric("📂 Interest-L2",   interest_l2)
+        col3.metric("📄 App Completed", app_completed)
+        col4.metric("🎓 Enrolled",      enrolled)
 
     funnel_data = pd.DataFrame({
-        "Stage": ["Inquiry", "Applicant", "Enrolled"],
-        "Count": [inquiries, applicants, enrolled]
+        "Stage": ["Interest-L1", "Interest-L2", "App Completed", "Enrolled"],
+        "Count": [interest_l1,   interest_l2,   app_completed,   enrolled]
     })
+
+
+    
+
     funnel_fig = px.bar(funnel_data, x="Count", y="Stage",
                         text="Count", color="Stage",
                         title="Lead Funnel", color_discrete_sequence=gsu_colors, orientation="h")
     funnel_fig.update_traces(textposition='outside')
     st.plotly_chart(funnel_fig, use_container_width=stacked, config={'displayModeBar': False})
 
-    leads_over_time = filtered_df[filtered_df['Person Status'].isin(['Inquiry', 'Applicant', 'Enrolled'])]
+    leads_over_time = filtered_df[
+        filtered_df["Person Status"].isin(
+            ["Interest-L1", "Interest-L2", "App Completed", "Enrolled"]
+        )
+    ]
+
+    
     leads_over_time = leads_over_time.dropna(subset=["Ping Timestamp"])
     fig = px.histogram(leads_over_time, x="Ping Timestamp", color="Person Status", barmode="group",
                        title="Leads Over Time", color_discrete_sequence=gsu_colors)
     st.plotly_chart(fig, use_container_width=stacked, config={'displayModeBar': False})
 
     df_term = filtered_df.copy()
-    df_term["Term"] = df_term["Applications Applied Term"].combine_first(df_term["Person Inquiry Term"])
-    df_term = df_term[df_term["Person Status"].isin(["Inquiry", "Applicant", "Enrolled"])]
+
+    # Safely build Term from Applied Term + Person Inquiry Term
+    term_cols = [c for c in ["Applications Applied Term", "Person Inquiry Term"] if c in df_term.columns]
+    if term_cols:
+        df_term["Term"] = df_term[term_cols].bfill(axis=1).iloc[:, 0]
+    else:
+        df_term["Term"] = None
+
+    # Use your NEW status labels
+    df_term = df_term[df_term["Person Status"].isin(
+        ["Interest-L1", "Interest-L2", "App Completed", "Enrolled"]
+    )]
+
+    
+    
+
 
     # Remove rows with missing, NaN, or blank Term values
     df_term = df_term[df_term["Term"].notna()]
