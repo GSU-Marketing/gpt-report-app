@@ -12,7 +12,13 @@ import gspread
 import json
 from oauth2client.service_account import ServiceAccountCredentials
 
-st.set_page_config(layout="wide")
+st.set_page_config(
+    page_title="PIPELINE DEVELOPER RESEARCH LAB",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+
 
 import os
 import requests
@@ -117,12 +123,12 @@ if "session_id" not in st.session_state:
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 gsu_colors = ['#0055CC', '#00A3AD', '#FDB913', '#C8102E']
 st.image("logo.png", width=180)
-st.markdown("""
-## Pipeline Developer Research Lab
+st.markdown("# PIPELINE DEVELOPER RESEARCH LAB")
+st.markdown("### Research • Analytics • AI Tools for Small Business and Enterprise")
+st.markdown("Applied research, market validation, data products, and commercialization support.")
+st.markdown("**Request a proposal:** PipeLineDeveloper.inc@gmail.com  |  (313) 777-1231")
 
-Applied research and analytics supporting market development, 
-economic insight, and commercialization strategy.
-""")
+
 
 
 if "mobile_view" not in st.session_state:
