@@ -116,8 +116,15 @@ if "session_id" not in st.session_state:
 # --- Setup ---
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 gsu_colors = ['#0055CC', '#00A3AD', '#FDB913', '#C8102E']
-st.image("logo.png", width=160)
-st.markdown("## GPT-Powered Higher Education-Marketing Data Explorer", unsafe_allow_html=True)
+st.image("logo.png", width=180)
+st.markdown("""
+## Pipeline Developer Research Lab
+
+Applied research and analytics supporting market development, 
+economic insight, and commercialization strategy.
+""")
+
+
 if "mobile_view" not in st.session_state:
     st.session_state.mobile_view = True
 
